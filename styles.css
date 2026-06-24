@@ -664,6 +664,100 @@ h3 {
   transform: translateY(0);
 }
 
+.tile.summer::after {
+  content: "";
+  position: absolute;
+  inset: auto 16px 16px auto;
+  z-index: 2;
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at center, rgba(255, 253, 248, 0.95) 0 18%, transparent 20%),
+    conic-gradient(from 0deg, rgba(214, 179, 106, 0), rgba(214, 179, 106, 0.88), rgba(214, 179, 106, 0));
+  opacity: 0;
+  transform: scale(0.72) rotate(0deg);
+  transition: opacity 260ms ease, transform 480ms ease;
+}
+
+.tile.summer:hover::after {
+  opacity: 0.9;
+  transform: scale(1) rotate(130deg);
+}
+
+.video-section {
+  display: grid;
+  grid-template-columns: minmax(0, 0.78fr) minmax(320px, 1.22fr);
+  gap: 44px;
+  align-items: center;
+}
+
+.video-copy p:not(.section-kicker) {
+  margin: 24px 0 0;
+  color: var(--muted);
+  font-size: 1.12rem;
+  line-height: 1.85;
+}
+
+.video-frame {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(183, 94, 105, 0.18);
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(255, 253, 248, 0.92), rgba(255, 247, 242, 0.76));
+  box-shadow: var(--shadow);
+  transition: transform 320ms ease, box-shadow 320ms ease, border-color 320ms ease;
+}
+
+.video-frame::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  z-index: 0;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.34), transparent 38%),
+    radial-gradient(circle at 24% 12%, rgba(214, 179, 106, 0.22), transparent 36%);
+  pointer-events: none;
+}
+
+.video-frame::after {
+  content: "звук включается в плеере";
+  position: absolute;
+  left: 16px;
+  top: 16px;
+  z-index: 2;
+  padding: 8px 12px;
+  border-radius: 999px;
+  color: #fffdf8;
+  background: rgba(44, 34, 36, 0.58);
+  font-size: 0.78rem;
+  font-weight: 800;
+  backdrop-filter: blur(10px);
+  transition: transform 260ms ease, background 260ms ease;
+}
+
+.video-frame:hover {
+  border-color: rgba(183, 94, 105, 0.38);
+  box-shadow: 0 34px 90px rgba(63, 35, 41, 0.2);
+  transform: translateY(-6px);
+}
+
+.video-frame:hover::after {
+  background: rgba(183, 94, 105, 0.72);
+  transform: translateY(-2px);
+}
+
+.video-frame video {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  max-height: 78vh;
+  object-fit: contain;
+  background: #241a1d;
+}
+
 .rituals {
   width: 100%;
   padding-right: max(16px, calc((100vw - 1120px) / 2));
@@ -894,7 +988,8 @@ h3 {
   }
 
   .intro,
-  .split {
+  .split,
+  .video-section {
     grid-template-columns: 1fr;
   }
 
@@ -976,6 +1071,11 @@ h3 {
   .tile,
   .tile img {
     min-height: 360px;
+  }
+
+  .video-frame video {
+    aspect-ratio: 9 / 14;
+    max-height: 72vh;
   }
 
   .tile.wide,
