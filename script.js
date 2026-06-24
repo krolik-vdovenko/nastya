@@ -1,4 +1,4 @@
-const revealItems = document.querySelectorAll(".section, .promise-card, .path-step, .tile, .ritual");
+const revealItems = document.querySelectorAll(".section, .promise-card, .path-step, .tile, .video-frame, .ritual");
 
 revealItems.forEach((item, index) => {
   item.classList.add("reveal");
