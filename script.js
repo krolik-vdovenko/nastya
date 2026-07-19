@@ -160,6 +160,164 @@ const revealItems = document.querySelectorAll(
 );
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+const immersiveShell = document.querySelector("#immersive-experience");
+const immersiveStage = immersiveShell?.querySelector(".immersive-stage");
+const immersiveScenes = immersiveShell
+  ? Array.from(immersiveShell.querySelectorAll(".immersive-scene"))
+  : [];
+const immersiveProgressFill = immersiveShell?.querySelector(".immersive-progress-fill");
+const immersiveCounterCurrent = immersiveShell?.querySelector(".immersive-counter-current");
+const immersiveExit = immersiveShell?.querySelector(".immersive-exit");
+const mode3dButton = document.querySelector(".mode-3d-toggle");
+const classicMain = document.querySelector("main");
+const classicFooter = document.querySelector(".footer");
+let classicScrollY = window.scrollY;
+let immersiveFrame = 0;
+let pointerFrame = 0;
+let pointerX = 0;
+let pointerY = 0;
+
+const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+const isImmersiveActive = () => document.body.classList.contains("immersive-active");
+
+const updateImmersiveProgress = () => {
+  immersiveFrame = 0;
+  if (!isImmersiveActive() || !immersiveShell || !immersiveStage || immersiveScenes.length === 0) return;
+
+  const scrollRange = Math.max(1, immersiveShell.offsetHeight - window.innerHeight);
+  const progress = clamp(window.scrollY / scrollRange, 0, 1);
+  const scenePosition = progress * (immersiveScenes.length - 1);
+  const activeScene = clamp(Math.round(scenePosition), 0, immersiveScenes.length - 1);
+
+  immersiveProgressFill?.style.setProperty("transform", `scaleY(${progress})`);
+  if (immersiveCounterCurrent) {
+    immersiveCounterCurrent.textContent = String(activeScene + 1).padStart(2, "0");
+  }
+  immersiveStage.dataset.activeScene = String(activeScene);
+
+  immersiveScenes.forEach((scene, index) => {
+    const distance = index - scenePosition;
+    const absoluteDistance = Math.abs(distance);
+    const sceneFadeRange = 0.94;
+    const opacity = absoluteDistance >= sceneFadeRange
+      ? 0
+      : Math.pow(Math.cos((absoluteDistance / sceneFadeRange) * Math.PI * 0.5), 0.72);
+    const scale = clamp(1 - absoluteDistance * 0.075, 0.88, 1);
+
+    scene.style.setProperty("--scene-opacity", opacity.toFixed(4));
+    scene.style.setProperty("--scene-y", `${(distance * 30).toFixed(3)}vh`);
+    scene.style.setProperty("--scene-z", `${(-absoluteDistance * 420).toFixed(2)}px`);
+    scene.style.setProperty("--scene-rotate-x", `${(-distance * 5.5).toFixed(3)}deg`);
+    scene.style.setProperty("--scene-scale", scale.toFixed(4));
+    scene.style.setProperty("--scene-card-shift", `${(-distance * 74).toFixed(2)}px`);
+    scene.style.zIndex = String(60 - Math.round(absoluteDistance * 10));
+
+    const isCurrent = index === activeScene;
+    scene.classList.toggle("is-current", isCurrent);
+    scene.setAttribute("aria-hidden", String(!isCurrent));
+  });
+};
+
+const scheduleImmersiveProgress = () => {
+  if (!immersiveFrame && isImmersiveActive()) {
+    immersiveFrame = requestAnimationFrame(updateImmersiveProgress);
+  }
+};
+
+const updateImmersivePointer = () => {
+  pointerFrame = 0;
+  if (!immersiveStage || reduceMotion || !isImmersiveActive()) return;
+
+  immersiveStage.style.setProperty("--near-x", `${(pointerX * -34).toFixed(2)}px`);
+  immersiveStage.style.setProperty("--near-y", `${(pointerY * -24).toFixed(2)}px`);
+  immersiveStage.style.setProperty("--mid-x", `${(pointerX * -17).toFixed(2)}px`);
+  immersiveStage.style.setProperty("--mid-y", `${(pointerY * -12).toFixed(2)}px`);
+  immersiveStage.style.setProperty("--far-x", `${(pointerX * 10).toFixed(2)}px`);
+  immersiveStage.style.setProperty("--far-y", `${(pointerY * 7).toFixed(2)}px`);
+};
+
+const scheduleImmersivePointer = () => {
+  if (!pointerFrame) {
+    pointerFrame = requestAnimationFrame(updateImmersivePointer);
+  }
+};
+
+const setClassicContentInert = (inert) => {
+  if (classicMain) classicMain.inert = inert;
+  if (classicFooter) classicFooter.inert = inert;
+};
+
+const enterImmersiveMode = () => {
+  if (!immersiveShell || !mode3dButton || isImmersiveActive()) return;
+
+  classicScrollY = window.scrollY;
+  immersiveShell.hidden = false;
+  immersiveShell.removeAttribute("aria-hidden");
+  setClassicContentInert(true);
+  document.body.classList.add("immersive-active");
+  document.querySelector(".site-header")?.classList.remove("is-hidden");
+  mode3dButton.setAttribute("aria-pressed", "true");
+  mode3dButton.setAttribute("aria-label", "Выключить 3D-фотоисторию");
+  mode3dButton.title = "Вернуться к обычному сайту";
+  themeColor.content = "#090709";
+
+  requestAnimationFrame(() => {
+    window.scrollTo(0, 0);
+    updateImmersiveProgress();
+    mode3dButton.focus({ preventScroll: true });
+
+    immersiveScenes[0]?.querySelectorAll("img").forEach((image) => {
+      image.decode?.().catch(() => {});
+    });
+  });
+};
+
+const exitImmersiveMode = () => {
+  if (!immersiveShell || !mode3dButton || !isImmersiveActive()) return;
+
+  document.body.classList.remove("immersive-active");
+  immersiveShell.hidden = true;
+  immersiveShell.setAttribute("aria-hidden", "true");
+  setClassicContentInert(false);
+  mode3dButton.setAttribute("aria-pressed", "false");
+  mode3dButton.setAttribute("aria-label", "Включить 3D-фотоисторию");
+  mode3dButton.title = "Включить 3D-фотоисторию";
+  setTheme(root.dataset.theme || "light");
+  window.scrollTo(0, classicScrollY);
+  mode3dButton.focus({ preventScroll: true });
+};
+
+mode3dButton?.addEventListener("click", () => {
+  if (isImmersiveActive()) {
+    exitImmersiveMode();
+  } else {
+    enterImmersiveMode();
+  }
+});
+
+immersiveExit?.addEventListener("click", exitImmersiveMode);
+
+window.addEventListener("scroll", scheduleImmersiveProgress, { passive: true });
+window.addEventListener("resize", scheduleImmersiveProgress, { passive: true });
+window.visualViewport?.addEventListener("resize", scheduleImmersiveProgress, { passive: true });
+
+window.addEventListener(
+  "pointermove",
+  (event) => {
+    if (reduceMotion || !isImmersiveActive()) return;
+    pointerX = clamp(event.clientX / Math.max(window.innerWidth, 1) - 0.5, -0.5, 0.5);
+    pointerY = clamp(event.clientY / Math.max(window.innerHeight, 1) - 0.5, -0.5, 0.5);
+    scheduleImmersivePointer();
+  },
+  { passive: true }
+);
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && isImmersiveActive()) {
+    exitImmersiveMode();
+  }
+});
+
 const siteHeader = document.querySelector(".site-header");
 
 if (siteHeader) {
@@ -171,6 +329,11 @@ if (siteHeader) {
   };
 
   const reactToScrollIntent = (deltaY) => {
+    if (isImmersiveActive()) {
+      setHeaderHidden(false);
+      return;
+    }
+
     const projectedScroll = window.scrollY + Math.max(deltaY, 0);
 
     if (projectedScroll < 96 || deltaY < -4) {

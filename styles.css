@@ -521,8 +521,8 @@ h3 {
 
 .intro-note {
   position: relative;
-  border-left: 3px solid var(--rose);
-  padding-left: 26px;
+  padding-top: 26px;
+  border-top: 1px solid var(--rose);
   color: var(--muted);
   font-size: 1.16rem;
   line-height: 1.8;
@@ -531,8 +531,8 @@ h3 {
 .intro-note::before {
   content: "“";
   position: absolute;
-  top: -26px;
-  left: 18px;
+  top: -38px;
+  left: 0;
   color: rgba(183, 94, 105, 0.15);
   font-family: Georgia, "Times New Roman", serif;
   font-size: 7rem;
@@ -2298,5 +2298,903 @@ h3 {
   .blog-preview:hover .blog-preview-media img {
     transition: none;
     transform: none;
+  }
+}
+
+/* Полноэкранная фотоистория. Блог намеренно не использует эти стили. */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mode-3d-toggle {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  width: 58px;
+  height: 44px;
+  flex: 0 0 58px;
+  place-items: center;
+  overflow: visible;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  color: #fffdf8;
+  background: #1c1417;
+  box-shadow: 0 6px 8px rgba(75, 34, 45, 0.26);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 950;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transform: translateZ(0);
+  transition:
+    color 180ms var(--ease-out-quart),
+    background 220ms var(--ease-out-quart),
+    transform 180ms var(--ease-out-quart);
+}
+
+.mode-3d-toggle::before {
+  content: "";
+  position: absolute;
+  z-index: -2;
+  inset: -3px;
+  border-radius: inherit;
+  background: conic-gradient(from 45deg, #ff6b83, #ffe1a8, #88e0b6, #8fa4ff, #ff6b83);
+  opacity: 0.9;
+  animation: mode3dOrbit 3.2s linear infinite;
+}
+
+.mode-3d-toggle::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 1px;
+  border-radius: inherit;
+  background: #1c1417;
+}
+
+.mode-3d-signal {
+  position: absolute;
+  z-index: -3;
+  inset: -9px;
+  border-radius: inherit;
+  background: rgba(239, 113, 132, 0.34);
+  filter: blur(10px);
+  opacity: 0.45;
+  animation: mode3dSignal 2.4s var(--ease-out-quart) infinite;
+}
+
+.mode-3d-label {
+  position: relative;
+  z-index: 1;
+}
+
+.mode-3d-toggle:hover {
+  color: #fff;
+  background: #27171c;
+  transform: translateY(-2px) scale(1.04);
+}
+
+.mode-3d-toggle:active {
+  transform: translateY(0) scale(0.96);
+}
+
+.mode-3d-toggle[aria-pressed="true"]::before {
+  animation-duration: 7s;
+}
+
+.mode-3d-toggle[aria-pressed="true"] .mode-3d-signal {
+  opacity: 0.24;
+  animation: none;
+}
+
+.immersive-shell[hidden] {
+  display: none !important;
+}
+
+.immersive-shell {
+  --immersive-ink: #fff9f7;
+  --immersive-muted: rgba(255, 247, 244, 0.68);
+  --immersive-line: rgba(255, 255, 255, 0.24);
+  position: relative;
+  z-index: 2;
+  height: 600svh;
+  min-height: 600vh;
+  color: var(--immersive-ink);
+  background: #090709;
+  isolation: isolate;
+}
+
+.immersive-stage {
+  --near-x: 0px;
+  --near-y: 0px;
+  --mid-x: 0px;
+  --mid-y: 0px;
+  --far-x: 0px;
+  --far-y: 0px;
+  position: sticky;
+  top: 0;
+  width: 100%;
+  height: 100svh;
+  min-height: 560px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 36%, rgba(255, 196, 204, 0.12), transparent 24rem),
+    linear-gradient(180deg, #171015 0%, #080708 66%, #030303 100%);
+  perspective: 1450px;
+  perspective-origin: 50% 46%;
+  animation: immersiveEnter 820ms var(--ease-out-expo) both;
+}
+
+.immersive-stage::after {
+  content: "";
+  position: absolute;
+  z-index: 70;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(3, 3, 3, 0.72), transparent 24%, transparent 74%, rgba(3, 3, 3, 0.56)),
+    linear-gradient(0deg, rgba(3, 3, 3, 0.68), transparent 25%, transparent 78%, rgba(3, 3, 3, 0.28));
+}
+
+.immersive-atmosphere,
+.immersive-scenes,
+.immersive-scene,
+.photo-orbit {
+  position: absolute;
+  inset: 0;
+}
+
+.immersive-atmosphere {
+  z-index: -1;
+  overflow: hidden;
+  background: #090709;
+}
+
+.immersive-atmosphere::before {
+  content: "";
+  position: absolute;
+  inset: -7%;
+  background: url("assets/nastya-river.jpg") center 54% / cover no-repeat;
+  filter: grayscale(1) contrast(1.16) brightness(0.52) blur(8px);
+  opacity: 0.34;
+  transform: scale(1.06);
+}
+
+.immersive-atmosphere::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 48% 36%, rgba(255, 222, 226, 0.2), transparent 21rem),
+    radial-gradient(circle at 22% 68%, rgba(133, 219, 178, 0.12), transparent 22rem),
+    linear-gradient(180deg, rgba(17, 12, 16, 0.32), rgba(4, 4, 4, 0.82));
+  transition: filter 900ms var(--ease-out-quint), background 900ms var(--ease-out-quint);
+}
+
+.immersive-orb {
+  position: absolute;
+  display: block;
+  width: clamp(260px, 36vw, 620px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  filter: blur(70px);
+  mix-blend-mode: screen;
+  opacity: 0.2;
+  animation: immersiveOrb 9s ease-in-out infinite alternate;
+}
+
+.orb-one {
+  top: -22%;
+  left: 18%;
+  background: #ff738a;
+}
+
+.orb-two {
+  right: -12%;
+  bottom: -16%;
+  background: #5fb58e;
+  animation-delay: -3s;
+}
+
+.orb-three {
+  bottom: 12%;
+  left: -14%;
+  width: clamp(220px, 28vw, 480px);
+  background: #9c7bed;
+  animation-delay: -6s;
+}
+
+.immersive-grain {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.12) 0 0.6px, transparent 0.8px);
+  background-size: 4px 4px;
+  mix-blend-mode: soft-light;
+  opacity: 0.22;
+}
+
+.immersive-hud {
+  position: absolute;
+  z-index: 100;
+  top: 28px;
+  left: 32px;
+  right: 108px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: start;
+  gap: 24px;
+  pointer-events: none;
+}
+
+.immersive-wordmark,
+.immersive-status,
+.immersive-blog-link,
+.immersive-counter,
+.immersive-scroll-hint {
+  font-family: ui-monospace, "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+}
+
+.immersive-wordmark {
+  display: grid;
+  gap: 5px;
+  justify-self: start;
+}
+
+.immersive-wordmark strong {
+  font-size: clamp(1.15rem, 2vw, 1.8rem);
+  letter-spacing: -0.03em;
+}
+
+.immersive-wordmark span,
+.immersive-status span,
+.immersive-status strong,
+.immersive-blog-link {
+  color: var(--immersive-muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.immersive-status {
+  display: grid;
+  gap: 5px;
+  justify-items: center;
+  text-align: center;
+}
+
+.immersive-status span {
+  color: #ff9cab;
+}
+
+.immersive-status strong {
+  color: var(--immersive-ink);
+}
+
+.immersive-blog-link {
+  position: relative;
+  justify-self: end;
+  padding-bottom: 6px;
+  color: var(--immersive-ink);
+  pointer-events: auto;
+}
+
+.immersive-blog-link::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0.35);
+  transform-origin: right;
+  transition: transform 220ms var(--ease-out-quart);
+}
+
+.immersive-blog-link:hover::after {
+  transform: scaleX(1);
+}
+
+.immersive-scenes {
+  z-index: 10;
+  transform-style: preserve-3d;
+}
+
+.immersive-scene {
+  opacity: var(--scene-opacity, 0);
+  pointer-events: none;
+  transform:
+    translate3d(0, var(--scene-y, 0vh), var(--scene-z, -360px))
+    rotateX(var(--scene-rotate-x, 0deg))
+    scale(var(--scene-scale, 0.96));
+  transform-style: preserve-3d;
+  will-change: transform, opacity;
+}
+
+.immersive-scene.is-current {
+  pointer-events: auto;
+}
+
+.immersive-copy {
+  position: absolute;
+  z-index: 60;
+  width: min(620px, calc(100% - 48px));
+  pointer-events: none;
+  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.78);
+}
+
+.immersive-copy p {
+  margin: 0 0 14px;
+  color: #ff9cab;
+  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.immersive-copy h2 {
+  margin: 0;
+  color: var(--immersive-ink);
+  font-size: clamp(3.2rem, 7vw, 6rem);
+  line-height: 0.9;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+.immersive-copy > span {
+  display: block;
+  max-width: 50ch;
+  margin-top: 20px;
+  color: var(--immersive-muted);
+  font-size: clamp(0.92rem, 1.4vw, 1.08rem);
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+
+.copy-left {
+  bottom: 10vh;
+  left: clamp(24px, 5vw, 78px);
+}
+
+.copy-right {
+  top: 24vh;
+  right: clamp(24px, 5vw, 78px);
+  text-align: right;
+}
+
+.copy-right > span {
+  margin-left: auto;
+}
+
+.copy-center {
+  top: 50%;
+  left: 50%;
+  text-align: center;
+  transform: translate(-50%, -50%);
+}
+
+.copy-center > span {
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.copy-low {
+  bottom: 7vh;
+}
+
+.copy-high {
+  top: 18vh;
+}
+
+.copy-final {
+  z-index: 80;
+  width: min(760px, calc(100% - 36px));
+  pointer-events: auto;
+}
+
+.photo-orbit {
+  z-index: 10;
+  transform-style: preserve-3d;
+}
+
+.orbit-photo {
+  --shift-x: var(--mid-x);
+  --shift-y: var(--mid-y);
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: clamp(150px, var(--w), 570px);
+  aspect-ratio: var(--ratio);
+  margin: 0;
+  overflow: hidden;
+  background: #171216;
+  box-shadow: 0 24px 58px rgba(0, 0, 0, 0.38);
+  transform:
+    translate3d(var(--shift-x), calc(var(--shift-y) + var(--scene-card-shift, 0px)), var(--z))
+    rotateZ(var(--rz));
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.orbit-photo::before {
+  content: "";
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  pointer-events: none;
+}
+
+.orbit-photo::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  background:
+    linear-gradient(125deg, rgba(255, 255, 255, 0.2), transparent 26%),
+    linear-gradient(0deg, rgba(4, 4, 4, 0.48), transparent 44%);
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+.orbit-photo.is-near {
+  --shift-x: var(--near-x);
+  --shift-y: var(--near-y);
+  box-shadow: 0 34px 86px rgba(0, 0, 0, 0.48), 0 0 64px rgba(255, 112, 135, 0.1);
+}
+
+.orbit-photo.is-far {
+  --shift-x: var(--far-x);
+  --shift-y: var(--far-y);
+  opacity: 0.74;
+  filter: blur(0.4px);
+}
+
+.orbit-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(0.68) saturate(0.74) contrast(1.08) brightness(0.86);
+  transform: scale(1.025);
+}
+
+.orbit-photo-main img,
+.orbit-photo-panorama img {
+  filter: grayscale(0.35) saturate(0.9) contrast(1.06) brightness(0.9);
+}
+
+.orbit-photo figcaption {
+  position: absolute;
+  z-index: 4;
+  right: 14px;
+  bottom: 14px;
+  left: 14px;
+  color: rgba(255, 255, 255, 0.84);
+  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+  font-size: 0.64rem;
+  line-height: 1.35;
+  text-shadow: 0 1px 12px #000;
+}
+
+.orbit-line {
+  position: absolute;
+  z-index: 1;
+  top: 48%;
+  left: 30%;
+  width: 42%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+  transform: rotate(-12deg);
+  transform-origin: center;
+}
+
+.immersive-progress {
+  position: absolute;
+  z-index: 100;
+  top: 25%;
+  right: 32px;
+  width: 1px;
+  height: 48%;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.immersive-progress-fill {
+  position: absolute;
+  inset: 0;
+  background: #ff8799;
+  transform: scaleY(0);
+  transform-origin: top;
+  will-change: transform;
+}
+
+.immersive-counter {
+  position: absolute;
+  z-index: 100;
+  right: 22px;
+  bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--immersive-muted);
+  font-size: 0.67rem;
+}
+
+.immersive-counter-current {
+  color: var(--immersive-ink);
+}
+
+.immersive-counter i {
+  width: 24px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.immersive-scroll-hint {
+  position: absolute;
+  z-index: 100;
+  bottom: 24px;
+  left: 32px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  color: var(--immersive-muted);
+  font-size: 0.63rem;
+  letter-spacing: 0.05em;
+}
+
+.immersive-scroll-hint span {
+  position: relative;
+  width: 7px;
+  height: 28px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.immersive-scroll-hint span::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 2px;
+  width: 3px;
+  height: 7px;
+  border-radius: 999px;
+  background: #fff;
+  animation: immersiveScrollCue 1.8s var(--ease-out-quart) infinite;
+}
+
+.immersive-exit {
+  min-height: 50px;
+  margin-top: 28px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 999px;
+  color: #170f13;
+  background: #fff5f4;
+  box-shadow: 0 7px 8px rgba(0, 0, 0, 0.26);
+  font: inherit;
+  font-weight: 850;
+  cursor: pointer;
+  transition: transform 180ms var(--ease-out-quart), background 180ms var(--ease-out-quart);
+}
+
+.immersive-exit:hover {
+  background: #ffc7cf;
+  transform: translateY(-2px) scale(1.02);
+}
+
+.immersive-exit:active {
+  transform: scale(0.97);
+}
+
+body.immersive-active {
+  overflow-x: hidden;
+  background: #090709;
+}
+
+body.immersive-active::before,
+body.immersive-active::after,
+body.immersive-active > .ambient,
+body.immersive-active > main,
+body.immersive-active > .footer {
+  display: none;
+}
+
+body.immersive-active .site-header {
+  top: 16px;
+  right: 16px;
+  left: auto;
+  width: auto;
+  min-height: 0;
+  padding: 7px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(13, 10, 12, 0.7);
+  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(14px);
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+}
+
+body.immersive-active .site-header:hover,
+body.immersive-active .site-header.is-hidden {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+}
+
+body.immersive-active .site-header .brand,
+body.immersive-active .site-header .nav,
+body.immersive-active .site-header .theme-toggle {
+  display: none;
+}
+
+body.immersive-active .mode-3d-toggle {
+  width: 64px;
+  color: #fff;
+  background: #180f13;
+}
+
+body.immersive-active .mode-3d-toggle::after {
+  background: #180f13;
+}
+
+@keyframes mode3dOrbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes mode3dSignal {
+  0%,
+  100% {
+    opacity: 0.24;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 0.66;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes immersiveEnter {
+  from {
+    opacity: 0;
+    filter: blur(12px);
+    transform: scale(1.035);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: scale(1);
+  }
+}
+
+@keyframes immersiveOrb {
+  from {
+    transform: translate3d(-4%, 2%, 0) scale(0.94);
+  }
+  to {
+    transform: translate3d(6%, -4%, 0) scale(1.08);
+  }
+}
+
+@keyframes immersiveScrollCue {
+  0% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+@media (max-width: 900px) {
+  .immersive-hud {
+    top: 22px;
+    left: 22px;
+    right: 98px;
+    grid-template-columns: 1fr auto;
+  }
+
+  .immersive-status {
+    display: none;
+  }
+
+  .copy-right {
+    top: auto;
+    right: 28px;
+    bottom: 9vh;
+  }
+
+  .copy-high {
+    top: auto;
+  }
+
+  .orbit-photo {
+    width: max(29vw, var(--w));
+  }
+
+  .orbit-photo-panorama {
+    width: max(58vw, var(--w));
+  }
+}
+
+@media (max-width: 620px) {
+  .header-actions {
+    margin-left: auto;
+  }
+
+  .mode-3d-toggle {
+    width: 56px;
+    height: 40px;
+    flex-basis: 56px;
+  }
+
+  .immersive-stage {
+    min-height: 520px;
+    perspective: 1050px;
+  }
+
+  .immersive-hud {
+    top: 18px;
+    left: 18px;
+    right: 92px;
+    gap: 10px;
+  }
+
+  .immersive-wordmark span {
+    display: none;
+  }
+
+  .immersive-blog-link {
+    padding-top: 4px;
+  }
+
+  .immersive-copy,
+  .copy-left,
+  .copy-right,
+  .copy-center {
+    top: auto;
+    right: 18px;
+    bottom: 8vh;
+    left: 18px;
+    width: auto;
+    text-align: left;
+    transform: none;
+  }
+
+  .immersive-copy h2 {
+    max-width: 11ch;
+    font-size: clamp(2.75rem, 14vw, 4.3rem);
+    line-height: 0.92;
+  }
+
+  .copy-center > span,
+  .copy-right > span {
+    margin-left: 0;
+  }
+
+  .copy-final {
+    bottom: 14vh;
+    text-align: center;
+  }
+
+  .copy-final h2 {
+    max-width: none;
+  }
+
+  .copy-final > span {
+    margin-right: auto;
+    margin-left: auto;
+  }
+
+  .orbit-photo {
+    width: max(42vw, var(--w));
+    max-width: 68vw;
+    box-shadow: 0 20px 44px rgba(0, 0, 0, 0.4);
+  }
+
+  .orbit-photo-panorama {
+    width: 78vw;
+    max-width: 78vw;
+  }
+
+  .orbit-photo figcaption {
+    display: none;
+  }
+
+  .orbit-opening .orbit-photo:nth-child(1),
+  .orbit-finale .orbit-photo:nth-child(1) {
+    left: -12% !important;
+  }
+
+  .orbit-opening .orbit-photo:nth-child(2),
+  .orbit-finale .orbit-photo:nth-child(2) {
+    left: 26% !important;
+  }
+
+  .orbit-opening .orbit-photo:nth-child(3),
+  .orbit-finale .orbit-photo:nth-child(3) {
+    left: 68% !important;
+  }
+
+  .orbit-eyes .orbit-photo:nth-child(1) {
+    left: -5% !important;
+    width: 62vw;
+  }
+
+  .orbit-eyes .orbit-photo:nth-child(2) {
+    left: 53% !important;
+    width: 50vw;
+  }
+
+  .orbit-cascade .orbit-photo:nth-child(1),
+  .orbit-seasons .orbit-photo:nth-child(3) {
+    left: -11% !important;
+  }
+
+  .orbit-cascade .orbit-photo:nth-child(4),
+  .orbit-seasons .orbit-photo:nth-child(2) {
+    left: 72% !important;
+  }
+
+  .orbit-future .orbit-photo:nth-child(1) {
+    left: -8% !important;
+    top: 7% !important;
+  }
+
+  .immersive-progress {
+    top: 22%;
+    right: 15px;
+    height: 42%;
+  }
+
+  .immersive-counter {
+    right: 14px;
+    bottom: 16px;
+  }
+
+  .immersive-scroll-hint {
+    bottom: 15px;
+    left: 16px;
+  }
+
+  body.immersive-active .site-header {
+    top: 10px;
+    right: 10px;
+    width: auto;
+    padding: 6px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mode-3d-toggle::before,
+  .mode-3d-signal,
+  .immersive-stage,
+  .immersive-orb,
+  .immersive-scroll-hint span::after {
+    animation: none !important;
+  }
+
+  .immersive-stage {
+    perspective: none;
+  }
+
+  .immersive-scene {
+    transform: none !important;
+  }
+
+  .orbit-photo {
+    transform: translate3d(0, var(--scene-card-shift, 0px), 0) rotateZ(var(--rz)) !important;
   }
 }

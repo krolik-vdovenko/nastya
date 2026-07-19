@@ -44,16 +44,193 @@
         <a class="nav-blog-link" href="blog.html">Блог</a>
         <a href="#letter">100 причин</a>
       </nav>
-      <button class="theme-toggle" type="button" aria-label="Включить тёмную тему" title="Включить тёмную тему">
-        <svg class="theme-icon sun-icon" viewBox="0 0 24 24" aria-hidden="true">
-          <circle cx="12" cy="12" r="4"/>
-          <path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42"/>
-        </svg>
-        <svg class="theme-icon moon-icon" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M20.2 15.2A8.5 8.5 0 0 1 8.8 3.8 8.5 8.5 0 1 0 20.2 15.2Z"/>
-        </svg>
-      </button>
+      <div class="header-actions">
+        <button
+          class="mode-3d-toggle"
+          type="button"
+          aria-pressed="false"
+          aria-controls="immersive-experience"
+          aria-label="Включить 3D-фотоисторию"
+          title="Включить 3D-фотоисторию"
+        >
+          <span class="mode-3d-signal" aria-hidden="true"></span>
+          <span class="mode-3d-label">3D</span>
+        </button>
+        <button class="theme-toggle" type="button" aria-label="Включить тёмную тему" title="Включить тёмную тему">
+          <svg class="theme-icon sun-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="4"/>
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42"/>
+          </svg>
+          <svg class="theme-icon moon-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M20.2 15.2A8.5 8.5 0 0 1 8.8 3.8 8.5 8.5 0 1 0 20.2 15.2Z"/>
+          </svg>
+        </button>
+      </div>
     </header>
+
+    <section
+      id="immersive-experience"
+      class="immersive-shell"
+      aria-label="Наша объёмная фотоистория"
+      hidden
+    >
+      <div class="immersive-stage">
+        <div class="immersive-atmosphere" aria-hidden="true">
+          <span class="immersive-orb orb-one"></span>
+          <span class="immersive-orb orb-two"></span>
+          <span class="immersive-orb orb-three"></span>
+          <span class="immersive-grain"></span>
+        </div>
+
+        <div class="immersive-hud">
+          <div class="immersive-wordmark">
+            <strong>НАСТЯ</strong>
+            <span>наша орбита / 2026</span>
+          </div>
+          <div class="immersive-status">
+            <span>3D-фотоистория</span>
+            <strong>Прокручивай вниз или вверх</strong>
+          </div>
+          <a class="immersive-blog-link" href="blog.html">Блог</a>
+        </div>
+
+        <div class="immersive-scenes">
+          <article class="immersive-scene is-current" data-scene="0" aria-labelledby="scene-title-0">
+            <div class="immersive-copy copy-left">
+              <p>Фотоархив / 01—06</p>
+              <h2 id="scene-title-0">Наша история<br>в глубине</h2>
+              <span>Не листай картинки. Двигайся сквозь них.</span>
+            </div>
+            <div class="photo-orbit orbit-opening" aria-hidden="true">
+              <figure class="orbit-photo is-far" style="--x: 7%; --y: 17%; --w: 25vw; --z: -170px; --rz: -8deg; --ratio: 4 / 5;">
+                <img src="assets/photo-01.png" alt="" loading="eager">
+              </figure>
+              <figure class="orbit-photo is-near orbit-photo-main" style="--x: 34%; --y: 8%; --w: 34vw; --z: 150px; --rz: 2deg; --ratio: 4 / 5;">
+                <img src="assets/photo-08.png" alt="" loading="eager">
+                <figcaption>точка, с которой всё начинается</figcaption>
+              </figure>
+              <figure class="orbit-photo is-mid" style="--x: 73%; --y: 31%; --w: 22vw; --z: -40px; --rz: 9deg; --ratio: 1 / 1;">
+                <img src="assets/photo-02.png" alt="" loading="eager">
+              </figure>
+            </div>
+          </article>
+
+          <article class="immersive-scene" data-scene="1" aria-labelledby="scene-title-1" aria-hidden="true">
+            <div class="immersive-copy copy-right">
+              <p>Два взгляда / одна тишина</p>
+              <h2 id="scene-title-1">Глаза,<br>в которых дом</h2>
+              <span>Самый красивый зелёный. Самый родной карий.</span>
+            </div>
+            <div class="photo-orbit orbit-eyes" aria-hidden="true">
+              <figure class="orbit-photo is-near" style="--x: 5%; --y: 8%; --w: 38vw; --z: 140px; --rz: -3deg; --ratio: 4 / 5;">
+                <img src="assets/nastya-eyes.jpg" alt="" loading="lazy">
+                <figcaption>взгляд, в котором я теряюсь</figcaption>
+              </figure>
+              <figure class="orbit-photo is-mid" style="--x: 47%; --y: 20%; --w: 29vw; --z: -10px; --rz: 5deg; --ratio: 4 / 5;">
+                <img src="assets/me.jpg" alt="" loading="lazy">
+                <figcaption>взгляд, в котором спокойно</figcaption>
+              </figure>
+              <span class="orbit-line line-eyes"></span>
+            </div>
+          </article>
+
+          <article class="immersive-scene" data-scene="2" aria-labelledby="scene-title-2" aria-hidden="true">
+            <div class="immersive-copy copy-center">
+              <p>Живые кадры / без идеальной позы</p>
+              <h2 id="scene-title-2">Смешные.<br>Настоящие. Мы.</h2>
+            </div>
+            <div class="photo-orbit orbit-cascade" aria-hidden="true">
+              <figure class="orbit-photo is-far" style="--x: 2%; --y: 39%; --w: 21vw; --z: -210px; --rz: -11deg; --ratio: 1 / 1;">
+                <img src="assets/photo-04.png" alt="" loading="lazy">
+              </figure>
+              <figure class="orbit-photo is-near" style="--x: 22%; --y: 8%; --w: 29vw; --z: 170px; --rz: 5deg; --ratio: 4 / 5;">
+                <img src="assets/photo-07.png" alt="" loading="lazy">
+              </figure>
+              <figure class="orbit-photo is-mid" style="--x: 52%; --y: 23%; --w: 25vw; --z: 10px; --rz: -4deg; --ratio: 4 / 5;">
+                <img src="assets/photo-13.png" alt="" loading="lazy">
+              </figure>
+              <figure class="orbit-photo is-far" style="--x: 78%; --y: 12%; --w: 20vw; --z: -160px; --rz: 12deg; --ratio: 4 / 5;">
+                <img src="assets/photo-06.png" alt="" loading="lazy">
+              </figure>
+            </div>
+          </article>
+
+          <article class="immersive-scene" data-scene="3" aria-labelledby="scene-title-3" aria-hidden="true">
+            <div class="immersive-copy copy-left copy-low">
+              <p>Солнце / снег / всё между</p>
+              <h2 id="scene-title-3">Наши времена<br>года</h2>
+              <span>Любое время становится нашим, если мы рядом.</span>
+            </div>
+            <div class="photo-orbit orbit-seasons" aria-hidden="true">
+              <figure class="orbit-photo is-near" style="--x: 39%; --y: 5%; --w: 30vw; --z: 180px; --rz: -2deg; --ratio: 4 / 5;">
+                <img src="assets/photo-15.jpg" alt="" loading="lazy">
+              </figure>
+              <figure class="orbit-photo is-mid" style="--x: 69%; --y: 17%; --w: 24vw; --z: -20px; --rz: 8deg; --ratio: 4 / 5;">
+                <img src="assets/photo-16.jpg" alt="" loading="lazy">
+              </figure>
+              <figure class="orbit-photo is-far" style="--x: 15%; --y: 10%; --w: 22vw; --z: -170px; --rz: -10deg; --ratio: 4 / 5;">
+                <img src="assets/photo-14.jpg" alt="" loading="lazy">
+              </figure>
+              <figure class="orbit-photo is-far" style="--x: 76%; --y: 58%; --w: 16vw; --z: -240px; --rz: 12deg; --ratio: 1 / 1;">
+                <img src="assets/photo-09.png" alt="" loading="lazy">
+              </figure>
+            </div>
+          </article>
+
+          <article class="immersive-scene" data-scene="4" aria-labelledby="scene-title-4" aria-hidden="true">
+            <div class="immersive-copy copy-right copy-high">
+              <p>Куда бы ни вела дорога</p>
+              <h2 id="scene-title-4">Ты — моё<br>любимое «впереди»</h2>
+              <span>Город, вода, небо и ещё столько наших будущих историй.</span>
+            </div>
+            <div class="photo-orbit orbit-future" aria-hidden="true">
+              <figure class="orbit-photo is-near orbit-photo-panorama" style="--x: 4%; --y: 4%; --w: 57vw; --z: 100px; --rz: -2deg; --ratio: 16 / 11;">
+                <img src="assets/nastya-river.jpg" alt="" loading="lazy">
+              </figure>
+              <figure class="orbit-photo is-mid" style="--x: 64%; --y: 47%; --w: 24vw; --z: -20px; --rz: 7deg; --ratio: 4 / 5;">
+                <img src="assets/photo-05.png" alt="" loading="lazy">
+              </figure>
+              <figure class="orbit-photo is-far" style="--x: 79%; --y: 12%; --w: 14vw; --z: -220px; --rz: 12deg; --ratio: 1 / 1;">
+                <img src="assets/photo-03.png" alt="" loading="lazy">
+              </figure>
+            </div>
+          </article>
+
+          <article class="immersive-scene" data-scene="5" aria-labelledby="scene-title-5" aria-hidden="true">
+            <div class="immersive-copy copy-center copy-final">
+              <p>Финальный кадр / но не финал истории</p>
+              <h2 id="scene-title-5">Я выбираю нас</h2>
+              <span>В хорошие дни. В сложные дни. Снова и снова.</span>
+              <button class="immersive-exit" type="button">Вернуться к обычному сайту</button>
+            </div>
+            <div class="photo-orbit orbit-finale" aria-hidden="true">
+              <figure class="orbit-photo is-far" style="--x: 4%; --y: 17%; --w: 26vw; --z: -170px; --rz: -9deg; --ratio: 4 / 5;">
+                <img src="assets/ritual-night.jpg" alt="" loading="lazy">
+              </figure>
+              <figure class="orbit-photo is-near" style="--x: 35%; --y: 8%; --w: 31vw; --z: 130px; --rz: 1deg; --ratio: 4 / 5;">
+                <img src="assets/photo-01.png" alt="" loading="lazy">
+              </figure>
+              <figure class="orbit-photo is-mid" style="--x: 71%; --y: 24%; --w: 23vw; --z: -30px; --rz: 9deg; --ratio: 4 / 5;">
+                <img src="assets/photo-06.png" alt="" loading="lazy">
+              </figure>
+            </div>
+          </article>
+        </div>
+
+        <div class="immersive-progress" aria-hidden="true">
+          <span class="immersive-progress-fill"></span>
+        </div>
+        <div class="immersive-counter" aria-live="polite">
+          <span class="immersive-counter-current">01</span>
+          <i></i>
+          <span>06</span>
+        </div>
+        <p class="immersive-scroll-hint" aria-hidden="true">
+          <span></span>
+          колесо / свайп / стрелки
+        </p>
+      </div>
+    </section>
 
     <main id="top">
       <section class="hero">
@@ -394,7 +571,7 @@
           </button>
         </form>
         <div class="photo-dialog-media">
-          <img id="photo-dialog-image" src="" alt="">
+          <img id="photo-dialog-image" src="assets/photo-08.png" alt="">
         </div>
         <div class="photo-dialog-copy">
           <p class="section-kicker">наше воспоминание</p>
