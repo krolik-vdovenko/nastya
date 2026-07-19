@@ -2404,8 +2404,8 @@ h3 {
   --immersive-line: rgba(255, 255, 255, 0.24);
   position: relative;
   z-index: 2;
+  height: 1000vh;
   height: 1000svh;
-  min-height: 1000vh;
   color: var(--immersive-ink);
   background: #090709;
   isolation: isolate;
@@ -2846,7 +2846,7 @@ h3 {
   inset: -35%;
   background: linear-gradient(112deg, transparent 34%, rgba(255, 255, 255, 0.22) 47%, transparent 59%);
   mix-blend-mode: screen;
-  opacity: 0.58;
+  opacity: 0;
   transform: translate3d(-58%, 0, 0) rotate(2deg);
   pointer-events: none;
 }
@@ -3111,12 +3111,10 @@ body.immersive-active .mode-3d-toggle::after {
 @keyframes immersiveEnter {
   from {
     opacity: 0;
-    filter: blur(12px);
     transform: scale(1.035);
   }
   to {
     opacity: 1;
-    filter: blur(0);
     transform: scale(1);
   }
 }
@@ -3379,11 +3377,94 @@ body.immersive-active .mode-3d-toggle::after {
   }
 }
 
-@media (max-width: 620px), (hover: none) and (pointer: coarse) {
+@media (max-width: 900px), (hover: none), (pointer: coarse) {
+  .immersive-stage {
+    min-height: 100svh;
+    perspective: none;
+    animation: none;
+  }
+
+  .immersive-atmosphere::before {
+    filter: none;
+    opacity: 0.22;
+    transform: scale(1.08);
+    will-change: auto;
+  }
+
+  .immersive-orb {
+    display: none;
+  }
+
+  .immersive-grain {
+    display: none;
+  }
+
+  .immersive-lightband {
+    mix-blend-mode: normal;
+    opacity: 0.14;
+    transform: rotate(16deg);
+    will-change: auto;
+  }
+
+  .immersive-depth-ring {
+    transform: translate(-50%, -50%);
+    will-change: auto;
+  }
+
+  .immersive-scene {
+    backface-visibility: visible;
+    contain: layout paint;
+    transform: translate3d(0, var(--scene-y, 0vh), 0);
+    transform-style: flat;
+  }
+
+  .immersive-scenes,
+  .photo-orbit {
+    transform-style: flat;
+  }
+
+  .immersive-scene.is-nearby,
+  .immersive-scene.is-nearby .orbit-photo {
+    will-change: auto;
+  }
+
+  .immersive-scene::after {
+    transform: translate(-50%, -50%);
+  }
+
+  .orbit-photo,
+  .orbit-photo.is-near {
+    backface-visibility: visible;
+    box-shadow: 0 16px 28px rgba(0, 0, 0, 0.38);
+    contain: layout;
+    transform: translate3d(0, var(--scene-card-shift, 0px), 0) rotateZ(var(--rz));
+    transform-style: flat;
+  }
+
+  .orbit-photo img,
+  .orbit-photo-main img,
+  .orbit-photo-panorama img {
+    backface-visibility: visible;
+    filter: none;
+    transform: none;
+  }
+
   .immersive-scene.is-current .orbit-photo img {
     animation: none;
-    transform: scale(1.025);
+    transform: none;
     will-change: auto;
+  }
+
+  .immersive-scene.is-current .orbit-photo::after,
+  .immersive-scene.is-current .orbit-line {
+    animation: none;
+  }
+
+  .orbit-photo::after {
+    background: linear-gradient(112deg, transparent 36%, rgba(255, 255, 255, 0.12) 48%, transparent 60%);
+    mix-blend-mode: normal;
+    opacity: 0;
+    transform: none;
   }
 }
 

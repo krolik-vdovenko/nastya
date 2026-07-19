@@ -159,6 +159,8 @@ const revealItems = document.querySelectorAll(
   ".section, .promise-card, .path-step, .tile, .video-frame, .ritual-photo, .ritual, .eyes-photo, .eyes-copy, .future-photo, .future-card"
 );
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)");
+const immersiveFlatMode = window.matchMedia("(max-width: 900px), (hover: none), (pointer: coarse)");
 
 const immersiveShell = document.querySelector("#immersive-experience");
 const immersiveStage = immersiveShell?.querySelector(".immersive-stage");
@@ -181,12 +183,26 @@ let immersiveRenderedProgress = 0;
 let immersiveLastFrameTime = 0;
 let immersiveHasRendered = false;
 let immersiveWarmupPromise = null;
+let immersiveEntryPending = false;
+let immersiveStageHeight = 1;
+let immersiveScrollRange = 1;
+let immersiveMetricWidth = 0;
+let immersiveActiveScene = -1;
 let pointerFrame = 0;
 let pointerX = 0;
 let pointerY = 0;
 
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 const isImmersiveActive = () => document.body.classList.contains("immersive-active");
+const setInlineProperty = (element, property, value) => {
+  if (element.style.getPropertyValue(property) !== value) {
+    element.style.setProperty(property, value);
+  }
+};
+
+immersiveScenes.forEach((scene, index) => {
+  scene.style.zIndex = String(index + 10);
+});
 
 const warmImmersiveImages = () => {
   if (immersiveWarmupPromise) return immersiveWarmupPromise;
@@ -202,24 +218,51 @@ const warmImmersiveImages = () => {
   return immersiveWarmupPromise;
 };
 
-const renderImmersiveProgress = (progress) => {
+const refreshImmersiveMetrics = (force = false) => {
+  if (!immersiveShell || !immersiveStage) return;
+
+  const viewportWidth = Math.round(window.innerWidth);
+  const mobileToolbarOnlyResize =
+    !force &&
+    immersiveFlatMode.matches &&
+    immersiveScrollRange > 1 &&
+    Math.abs(viewportWidth - immersiveMetricWidth) < 2;
+
+  if (mobileToolbarOnlyResize) return;
+
+  immersiveMetricWidth = viewportWidth;
+  immersiveStageHeight = Math.max(1, immersiveStage.clientHeight);
+  immersiveScrollRange = Math.max(1, immersiveShell.offsetHeight - immersiveStageHeight);
+};
+
+const renderImmersiveProgress = (progress, stageHeight) => {
   if (!immersiveStage || immersiveScenes.length === 0) return;
 
   const scenePosition = progress * (immersiveScenes.length - 1);
-  const activeScene = clamp(Math.round(scenePosition), 0, immersiveScenes.length - 1);
-
-  immersiveStage.style.setProperty("--story-progress", progress.toFixed(5));
-  immersiveStage.style.setProperty("--story-drift", `${((progress - 0.5) * 18).toFixed(3)}vw`);
-  immersiveStage.style.setProperty("--story-turn", `${((progress - 0.5) * 8).toFixed(3)}deg`);
-  immersiveProgressFill?.style.setProperty("transform", `scaleY(${progress})`);
-  if (immersiveCounterCurrent) {
-    immersiveCounterCurrent.textContent = String(activeScene + 1).padStart(2, "0");
+  let activeScene = clamp(Math.round(scenePosition), 0, immersiveScenes.length - 1);
+  if (immersiveActiveScene >= 0 && Math.abs(scenePosition - immersiveActiveScene) < 0.56) {
+    activeScene = immersiveActiveScene;
   }
-  immersiveStage.dataset.activeScene = String(activeScene);
+  const activeSceneChanged = activeScene !== immersiveActiveScene;
+  const flatMode = immersiveFlatMode.matches;
+
+  if (!flatMode) {
+    setInlineProperty(immersiveStage, "--story-drift", `${((progress - 0.5) * 18).toFixed(3)}vw`);
+    setInlineProperty(immersiveStage, "--story-turn", `${((progress - 0.5) * 8).toFixed(3)}deg`);
+  }
+  immersiveProgressFill?.style.setProperty("transform", `scaleY(${progress})`);
+  if (activeSceneChanged) {
+    if (immersiveCounterCurrent) {
+      immersiveCounterCurrent.textContent = String(activeScene + 1).padStart(2, "0");
+    }
+    immersiveStage.dataset.activeScene = String(activeScene);
+    immersiveActiveScene = activeScene;
+  }
 
   immersiveScenes.forEach((scene, index) => {
     const distance = index - scenePosition;
     const absoluteDistance = Math.abs(distance);
+    const isNearby = absoluteDistance < 1.08;
     const sceneFadeRange = 0.94;
     const opacity = absoluteDistance >= sceneFadeRange
       ? 0
@@ -227,20 +270,26 @@ const renderImmersiveProgress = (progress) => {
     const presence = clamp(1 - absoluteDistance / sceneFadeRange, 0, 1);
     const scale = clamp(1 - absoluteDistance * 0.048, 0.92, 1);
 
-    scene.style.setProperty("--scene-opacity", opacity.toFixed(4));
-    scene.style.setProperty("--scene-presence", presence.toFixed(4));
-    scene.style.setProperty("--scene-distance", distance.toFixed(4));
-    scene.style.setProperty("--scene-y", `${(distance * 22).toFixed(3)}vh`);
-    scene.style.setProperty("--scene-z", `${(-absoluteDistance * 290).toFixed(2)}px`);
-    scene.style.setProperty("--scene-rotate-x", `${(-distance * 3.2).toFixed(3)}deg`);
-    scene.style.setProperty("--scene-scale", scale.toFixed(4));
-    scene.style.setProperty("--scene-card-shift", `${(-distance * 46).toFixed(2)}px`);
-    scene.style.zIndex = String(60 - Math.round(absoluteDistance * 10));
+    setInlineProperty(scene, "--scene-opacity", opacity.toFixed(4));
+    setInlineProperty(scene, "--scene-presence", presence.toFixed(4));
 
-    const isCurrent = index === activeScene;
-    scene.classList.toggle("is-current", isCurrent);
-    scene.classList.toggle("is-nearby", absoluteDistance < 1.08);
-    scene.setAttribute("aria-hidden", String(!isCurrent));
+    if (isNearby) {
+      setInlineProperty(scene, "--scene-y", `${(distance * stageHeight * 0.22).toFixed(2)}px`);
+      setInlineProperty(scene, "--scene-card-shift", `${(-distance * 46).toFixed(2)}px`);
+
+      if (!flatMode) {
+        setInlineProperty(scene, "--scene-z", `${(-absoluteDistance * 290).toFixed(2)}px`);
+        setInlineProperty(scene, "--scene-rotate-x", `${(-distance * 3.2).toFixed(3)}deg`);
+        setInlineProperty(scene, "--scene-scale", scale.toFixed(4));
+      }
+    }
+
+    if (activeSceneChanged) {
+      const isCurrent = index === activeScene;
+      scene.classList.toggle("is-current", isCurrent);
+      scene.setAttribute("aria-hidden", String(!isCurrent));
+    }
+    scene.classList.toggle("is-nearby", isNearby);
   });
 };
 
@@ -248,8 +297,7 @@ const updateImmersiveProgress = (timestamp = performance.now()) => {
   immersiveFrame = 0;
   if (!isImmersiveActive() || !immersiveShell || !immersiveStage || immersiveScenes.length === 0) return;
 
-  const scrollRange = Math.max(1, immersiveShell.offsetHeight - window.innerHeight);
-  immersiveTargetProgress = clamp(window.scrollY / scrollRange, 0, 1);
+  immersiveTargetProgress = clamp(window.scrollY / immersiveScrollRange, 0, 1);
 
   if (!immersiveHasRendered) {
     immersiveRenderedProgress = immersiveTargetProgress;
@@ -261,7 +309,7 @@ const updateImmersiveProgress = (timestamp = performance.now()) => {
   }
 
   immersiveLastFrameTime = timestamp;
-  renderImmersiveProgress(immersiveRenderedProgress);
+  renderImmersiveProgress(immersiveRenderedProgress, immersiveStageHeight);
 
   if (Math.abs(immersiveTargetProgress - immersiveRenderedProgress) > 0.00004) {
     immersiveFrame = requestAnimationFrame(updateImmersiveProgress);
@@ -292,13 +340,33 @@ const scheduleImmersivePointer = () => {
   }
 };
 
+const resetImmersivePointer = () => {
+  pointerX = 0;
+  pointerY = 0;
+  if (!immersiveStage) return;
+  immersiveStage.style.setProperty("--near-x", "0px");
+  immersiveStage.style.setProperty("--near-y", "0px");
+  immersiveStage.style.setProperty("--mid-x", "0px");
+  immersiveStage.style.setProperty("--mid-y", "0px");
+  immersiveStage.style.setProperty("--far-x", "0px");
+  immersiveStage.style.setProperty("--far-y", "0px");
+};
+
 const setClassicContentInert = (inert) => {
   if (classicMain) classicMain.inert = inert;
   if (classicFooter) classicFooter.inert = inert;
 };
 
-const enterImmersiveMode = () => {
-  if (!immersiveShell || !mode3dButton || isImmersiveActive()) return;
+const enterImmersiveMode = async () => {
+  if (!immersiveShell || !mode3dButton || isImmersiveActive() || immersiveEntryPending) return;
+
+  immersiveEntryPending = true;
+  mode3dButton.setAttribute("aria-busy", "true");
+  await warmImmersiveImages();
+  immersiveEntryPending = false;
+  mode3dButton.removeAttribute("aria-busy");
+
+  if (isImmersiveActive()) return;
 
   classicScrollY = window.scrollY;
   root.classList.add("immersive-scrolling");
@@ -313,9 +381,11 @@ const enterImmersiveMode = () => {
   themeColor.content = "#090709";
   immersiveHasRendered = false;
   immersiveLastFrameTime = 0;
-  warmImmersiveImages();
+  immersiveActiveScene = -1;
+  resetImmersivePointer();
 
   requestAnimationFrame(() => {
+    refreshImmersiveMetrics(true);
     window.scrollTo(0, 0);
     updateImmersiveProgress();
     mode3dButton.focus({ preventScroll: true });
@@ -351,22 +421,60 @@ mode3dButton?.addEventListener("click", () => {
 mode3dButton?.addEventListener("pointerenter", warmImmersiveImages, { once: true });
 mode3dButton?.addEventListener("focus", warmImmersiveImages, { once: true });
 
+const scheduleImmersiveWarmup = () => {
+  if ("requestIdleCallback" in window) {
+    window.requestIdleCallback(warmImmersiveImages, { timeout: 1800 });
+  } else {
+    window.setTimeout(warmImmersiveImages, 1200);
+  }
+};
+
+if (document.readyState === "complete") {
+  scheduleImmersiveWarmup();
+} else {
+  window.addEventListener("load", scheduleImmersiveWarmup, { once: true });
+}
+
 immersiveExit?.addEventListener("click", exitImmersiveMode);
 
 window.addEventListener("scroll", scheduleImmersiveProgress, { passive: true });
-window.addEventListener("resize", scheduleImmersiveProgress, { passive: true });
-window.visualViewport?.addEventListener("resize", scheduleImmersiveProgress, { passive: true });
+window.addEventListener(
+  "resize",
+  () => {
+    refreshImmersiveMetrics();
+    scheduleImmersiveProgress();
+  },
+  { passive: true }
+);
+window.addEventListener(
+  "orientationchange",
+  () => {
+    requestAnimationFrame(() => {
+      refreshImmersiveMetrics(true);
+      scheduleImmersiveProgress();
+    });
+  },
+  { passive: true }
+);
 
 window.addEventListener(
   "pointermove",
   (event) => {
-    if (reduceMotion || !isImmersiveActive()) return;
+    if (
+      reduceMotion ||
+      !finePointer.matches ||
+      !isImmersiveActive() ||
+      (event.pointerType && event.pointerType !== "mouse")
+    ) return;
     pointerX = clamp(event.clientX / Math.max(window.innerWidth, 1) - 0.5, -0.5, 0.5);
     pointerY = clamp(event.clientY / Math.max(window.innerHeight, 1) - 0.5, -0.5, 0.5);
     scheduleImmersivePointer();
   },
   { passive: true }
 );
+
+window.addEventListener("pointerleave", resetImmersivePointer, { passive: true });
+window.addEventListener("pointercancel", resetImmersivePointer, { passive: true });
 
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && isImmersiveActive()) {
