@@ -169,6 +169,7 @@ const immersiveScenes = immersiveShell
   : [];
 const immersiveProgressFill = immersiveShell?.querySelector(".immersive-progress-fill");
 const immersiveCounterCurrent = immersiveShell?.querySelector(".immersive-counter-current");
+const immersiveCounterTotal = immersiveShell?.querySelector(".immersive-counter-total");
 const immersiveExit = immersiveShell?.querySelector(".immersive-exit");
 const mode3dButton = document.querySelector(".mode-3d-toggle");
 const classicMain = document.querySelector("main");
@@ -203,6 +204,21 @@ const setInlineProperty = (element, property, value) => {
 immersiveScenes.forEach((scene, index) => {
   scene.style.zIndex = String(index + 10);
 });
+
+if (immersiveCounterTotal) {
+  immersiveCounterTotal.textContent = String(immersiveScenes.length).padStart(2, "0");
+}
+
+const setImmersiveExitReady = (ready) => {
+  if (!immersiveExit) return;
+
+  immersiveExit.classList.toggle("is-visible", ready);
+  immersiveExit.disabled = !ready;
+  immersiveExit.tabIndex = ready ? 0 : -1;
+  immersiveExit.setAttribute("aria-hidden", String(!ready));
+};
+
+setImmersiveExitReady(false);
 
 const warmImmersiveImages = () => {
   if (immersiveWarmupPromise) return immersiveWarmupPromise;
@@ -256,6 +272,7 @@ const renderImmersiveProgress = (progress, stageHeight) => {
       immersiveCounterCurrent.textContent = String(activeScene + 1).padStart(2, "0");
     }
     immersiveStage.dataset.activeScene = String(activeScene);
+    setImmersiveExitReady(activeScene === immersiveScenes.length - 1);
     immersiveActiveScene = activeScene;
   }
 
@@ -398,6 +415,7 @@ const exitImmersiveMode = () => {
   document.body.classList.remove("immersive-active");
   cancelAnimationFrame(immersiveFrame);
   immersiveFrame = 0;
+  setImmersiveExitReady(false);
   immersiveShell.hidden = true;
   immersiveShell.setAttribute("aria-hidden", "true");
   setClassicContentInert(false);
@@ -629,6 +647,11 @@ const photoMessages = {
   "photo-14.jpg": "Лето рядом с тобой пахнет солнцем, свободой и счастьем.",
   "photo-15.jpg": "Твой солнечный смех делает мой день самым тёплым.",
   "photo-16.jpg": "Ты у моря, а у меня в сердце снова становится светлее.",
+  "memory-walk.jpg": "Люблю кадры, где мы не стараемся быть идеальными — просто живые, смешные и вместе.",
+  "memory-spa.jpg": "С тобой даже уход за собой превращается в наш маленький домашний ритуал.",
+  "memory-winter-kiss.jpg": "Даже самый холодный вечер становится тёплым, когда мы так близко.",
+  "memory-scarf-kiss.jpg": "Когда мы рядом, для целого мира хватает места под одним тёплым шарфом.",
+  "memory-summer.jpg": "Тёплый воздух, деревья и мы — день, который хочется навсегда оставить с собой.",
   "ritual-night.jpg": "Даже в полумраке я узнаю самое важное: нас, близость и тепло этого момента.",
   "nastya-eyes.jpg": "В твоём взгляде столько тепла, что я каждый раз будто возвращаюсь домой.",
   "me.jpg": "В твоём взгляде столько тепла, что рядом с тобой я каждый раз будто возвращаюсь домой.",

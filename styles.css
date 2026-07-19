@@ -1060,6 +1060,10 @@ h3 {
   transform: translateZ(0) scale(1.05);
 }
 
+.night-memory img {
+  object-position: center 62%;
+}
+
 .tile figcaption {
   position: absolute;
   left: 12px;
@@ -2404,8 +2408,8 @@ h3 {
   --immersive-line: rgba(255, 255, 255, 0.24);
   position: relative;
   z-index: 2;
-  height: 1000vh;
-  height: 1000svh;
+  height: 1400vh;
+  height: 1400svh;
   color: var(--immersive-ink);
   background: #090709;
   isolation: isolate;
@@ -2685,6 +2689,14 @@ h3 {
   --scene-accent-rgb: 202, 134, 255;
 }
 
+.immersive-scene:nth-child(7) {
+  --scene-accent-rgb: 255, 159, 196;
+}
+
+.immersive-scene:nth-child(8) {
+  --scene-accent-rgb: 148, 185, 255;
+}
+
 .immersive-scene::before {
   content: "";
   position: absolute;
@@ -2798,11 +2810,12 @@ h3 {
 .copy-final {
   z-index: 80;
   width: min(760px, calc(100% - 36px));
-  pointer-events: auto;
+  pointer-events: none;
 }
 
 .photo-orbit {
   z-index: 10;
+  pointer-events: none;
   transform-style: preserve-3d;
 }
 
@@ -2934,6 +2947,7 @@ h3 {
   height: 48%;
   overflow: hidden;
   background: rgba(255, 255, 255, 0.2);
+  pointer-events: none;
 }
 
 .immersive-progress-fill {
@@ -2967,6 +2981,7 @@ h3 {
   gap: 9px;
   color: var(--immersive-muted);
   font-size: 0.67rem;
+  pointer-events: none;
 }
 
 .immersive-counter-current {
@@ -2991,6 +3006,7 @@ h3 {
   color: var(--immersive-muted);
   font-size: 0.63rem;
   letter-spacing: 0.05em;
+  pointer-events: none;
 }
 
 .immersive-scroll-hint span {
@@ -3014,8 +3030,11 @@ h3 {
 }
 
 .immersive-exit {
+  position: absolute;
+  z-index: 120;
+  top: calc(50% + clamp(150px, 18vh, 190px));
+  left: 50%;
   min-height: 50px;
-  margin-top: 28px;
   padding: 0 22px;
   border: 0;
   border-radius: 999px;
@@ -3024,17 +3043,39 @@ h3 {
   box-shadow: 0 7px 8px rgba(0, 0, 0, 0.26);
   font: inherit;
   font-weight: 850;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  touch-action: manipulation;
+  transform: translate3d(-50%, 12px, 0);
+  transition:
+    opacity 220ms var(--ease-out-quart),
+    visibility 220ms var(--ease-out-quart),
+    transform 220ms var(--ease-out-quart),
+    background 180ms var(--ease-out-quart);
+}
+
+.immersive-exit.is-visible {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
   cursor: pointer;
-  transition: transform 180ms var(--ease-out-quart), background 180ms var(--ease-out-quart);
+  transform: translate3d(-50%, 0, 0);
 }
 
-.immersive-exit:hover {
+.immersive-exit.is-visible:hover {
   background: #ffc7cf;
-  transform: translateY(-2px) scale(1.02);
+  transform: translate3d(-50%, -2px, 0) scale(1.02);
 }
 
-.immersive-exit:active {
-  transform: scale(0.97);
+.immersive-exit.is-visible:active {
+  transform: translate3d(-50%, 0, 0) scale(0.97);
+}
+
+.immersive-exit:focus-visible {
+  outline: 3px solid #ff8799;
+  outline-offset: 4px;
 }
 
 body.immersive-active {
@@ -3265,7 +3306,7 @@ body.immersive-active .mode-3d-toggle::after {
   }
 
   .copy-final {
-    bottom: 14vh;
+    bottom: max(21vh, 120px);
     text-align: center;
   }
 
@@ -3315,22 +3356,26 @@ body.immersive-active .mode-3d-toggle::after {
     width: 54vw;
   }
 
-  .orbit-cascade .orbit-photo:nth-child(1) {
+  .orbit-cascade .orbit-photo:nth-child(1),
+  .orbit-playful .orbit-photo:nth-child(1) {
     left: -6% !important;
     width: 63vw;
   }
 
-  .orbit-cascade .orbit-photo:nth-child(2) {
+  .orbit-cascade .orbit-photo:nth-child(2),
+  .orbit-playful .orbit-photo:nth-child(2) {
     left: 54% !important;
     width: 56vw;
   }
 
-  .orbit-seasons .orbit-photo:nth-child(1) {
+  .orbit-seasons .orbit-photo:nth-child(1),
+  .orbit-days .orbit-photo:nth-child(1) {
     left: 46% !important;
     width: 58vw;
   }
 
-  .orbit-seasons .orbit-photo:nth-child(2) {
+  .orbit-seasons .orbit-photo:nth-child(2),
+  .orbit-days .orbit-photo:nth-child(2) {
     left: -10% !important;
     width: 56vw;
   }
@@ -3367,6 +3412,15 @@ body.immersive-active .mode-3d-toggle::after {
   .immersive-scroll-hint {
     bottom: 15px;
     left: 16px;
+  }
+
+  .immersive-exit {
+    top: auto;
+    bottom: calc(max(62px, 8vh) + env(safe-area-inset-bottom, 0px));
+    width: min(360px, calc(100% - 40px));
+    min-height: 52px;
+    padding: 8px 18px;
+    white-space: normal;
   }
 
   body.immersive-active .site-header {

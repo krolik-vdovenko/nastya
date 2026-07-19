@@ -18,7 +18,7 @@
         document.documentElement.dataset.theme = savedTheme || systemTheme;
       })();
     </script>
-    <link rel="stylesheet" href="styles.css?v=3d4-20260720">
+    <link rel="stylesheet" href="styles.css?v=3d5-20260720">
   </head>
   <body>
     <a class="skip-link" href="#top">Перейти к содержанию</a>
@@ -100,7 +100,7 @@
         <div class="immersive-scenes">
           <article class="immersive-scene is-current" data-scene="0" data-whisper="БЛИЖЕ" aria-labelledby="scene-title-0">
             <div class="immersive-copy copy-left">
-              <p>Фотоархив / 01—06</p>
+              <p>Фотоархив / 01—08</p>
               <h2 id="scene-title-0">Наша история<br>в глубине</h2>
               <span>Не листай картинки. Двигайся сквозь них.</span>
             </div>
@@ -181,16 +181,51 @@
             </div>
           </article>
 
-          <article class="immersive-scene" data-scene="5" data-whisper="ВМЕСТЕ" aria-labelledby="scene-title-5" aria-hidden="true">
+          <article class="immersive-scene" data-scene="5" data-whisper="РЯДОМ" aria-labelledby="scene-title-5" aria-hidden="true">
+            <div class="immersive-copy copy-left copy-low">
+              <p>Обычные дни / наши любимые</p>
+              <h2 id="scene-title-5">Один маршрут<br>на двоих</h2>
+              <span>Когда мы рядом, любая прогулка становится нашей историей.</span>
+            </div>
+            <div class="photo-orbit orbit-days" aria-hidden="true">
+              <figure class="orbit-photo is-near" style="--x: 42%; --y: 5%; --w: 35vw; --z: 120px; --rz: 3deg; --ratio: 3 / 4; --order: 1;">
+                <img src="assets/memory-walk.jpg" alt="" loading="lazy" decoding="async">
+                <figcaption>один маршрут на двоих</figcaption>
+              </figure>
+              <figure class="orbit-photo is-mid" style="--x: 9%; --y: 17%; --w: 29vw; --z: -35px; --rz: -6deg; --ratio: 3 / 4; --order: 2;">
+                <img src="assets/memory-summer.jpg" alt="" loading="lazy" decoding="async">
+                <figcaption>наше лето</figcaption>
+              </figure>
+            </div>
+          </article>
+
+          <article class="immersive-scene" data-scene="6" data-whisper="СВОИ" aria-labelledby="scene-title-6" aria-hidden="true">
+            <div class="immersive-copy copy-right">
+              <p>Без серьёзных лиц / без фильтров</p>
+              <h2 id="scene-title-6">С тобой можно<br>быть собой</h2>
+              <span>Красивыми, смешными, странными — любыми. И всегда своими.</span>
+            </div>
+            <div class="photo-orbit orbit-playful" aria-hidden="true">
+              <figure class="orbit-photo is-near" style="--x: 12%; --y: 6%; --w: 36vw; --z: 130px; --rz: -4deg; --ratio: 3 / 4; --order: 1;">
+                <img src="assets/memory-spa.jpg" alt="" loading="lazy" decoding="async">
+                <figcaption>домашний спа</figcaption>
+              </figure>
+              <figure class="orbit-photo is-mid" style="--x: 59%; --y: 23%; --w: 29vw; --z: -20px; --rz: 7deg; --ratio: 3 / 4; --order: 2;">
+                <img src="assets/memory-scarf-kiss.jpg" alt="" loading="lazy" decoding="async">
+                <figcaption>серьёзность отменяется</figcaption>
+              </figure>
+            </div>
+          </article>
+
+          <article class="immersive-scene" data-scene="7" data-whisper="ВМЕСТЕ" aria-labelledby="scene-title-7" aria-hidden="true">
             <div class="immersive-copy copy-center copy-final">
               <p>Финальный кадр / но не финал истории</p>
-              <h2 id="scene-title-5">Я выбираю нас</h2>
+              <h2 id="scene-title-7">Я выбираю нас</h2>
               <span>В хорошие дни. В сложные дни. Снова и снова.</span>
-              <button class="immersive-exit" type="button">Вернуться к обычному сайту</button>
             </div>
             <div class="photo-orbit orbit-finale" aria-hidden="true">
-              <figure class="orbit-photo is-far" style="--x: 7%; --y: 15%; --w: 30vw; --z: -100px; --rz: -8deg; --ratio: 4 / 5; --order: 1;">
-                <img src="assets/3d-finale-night.jpg" alt="" loading="lazy" decoding="async">
+              <figure class="orbit-photo is-far orbit-photo-panorama" style="--x: 4%; --y: 11%; --w: 40vw; --z: -100px; --rz: -5deg; --ratio: 1 / 1; --order: 1;">
+                <img src="assets/memory-winter-kiss.jpg" alt="" loading="lazy" decoding="async">
               </figure>
               <figure class="orbit-photo is-near" style="--x: 55%; --y: 7%; --w: 34vw; --z: 120px; --rz: 3deg; --ratio: 4 / 5; --order: 2;">
                 <img src="assets/3d-embrace.jpg" alt="" loading="lazy" decoding="async">
@@ -199,13 +234,17 @@
           </article>
         </div>
 
+        <button class="immersive-exit" type="button" tabindex="-1" aria-hidden="true" disabled>
+          Вернуться к обычному сайту
+        </button>
+
         <div class="immersive-progress" aria-hidden="true">
           <span class="immersive-progress-fill"></span>
         </div>
         <div class="immersive-counter" aria-live="polite">
           <span class="immersive-counter-current">01</span>
           <i></i>
-          <span>06</span>
+          <span class="immersive-counter-total">08</span>
         </div>
         <p class="immersive-scroll-hint" aria-hidden="true">
           <span></span>
@@ -408,6 +447,11 @@
           <figure class="tile wide summer"><img src="assets/photo-14.jpg" alt="Летнее фото вместе"><figcaption>лето рядом</figcaption></figure>
           <figure class="tile tall summer"><img src="assets/photo-15.jpg" alt="Летний портрет вместе"><figcaption>солнечный день</figcaption></figure>
           <figure class="tile summer"><img src="assets/photo-16.jpg" alt="Фото Насти на пляже"><figcaption>самая красивая</figcaption></figure>
+          <figure class="tile tall"><img src="assets/memory-walk.jpg" alt="Селфи Насти и Саши на прогулке" width="1050" height="1400" loading="lazy" decoding="async"><figcaption>один маршрут на двоих</figcaption></figure>
+          <figure class="tile"><img src="assets/memory-spa.jpg" alt="Домашнее селфи Насти и Саши с косметическими масками" width="1050" height="1400" loading="lazy" decoding="async"><figcaption>домашний спа</figcaption></figure>
+          <figure class="tile wide night-memory"><img src="assets/memory-winter-kiss.jpg" alt="Поцелуй на фоне зимнего ночного города" width="1400" height="1400" loading="lazy" decoding="async"><figcaption>ночь, в которой тепло</figcaption></figure>
+          <figure class="tile"><img src="assets/memory-scarf-kiss.jpg" alt="Весёлый кадр, где Настя и Саша спрятались в одежде" width="1050" height="1400" loading="lazy" decoding="async"><figcaption>серьёзность отменяется</figcaption></figure>
+          <figure class="tile summer"><img src="assets/memory-summer.jpg" alt="Летнее селфи Насти и Саши на деревянной террасе" width="1050" height="1400" loading="lazy" decoding="async"><figcaption>наше лето</figcaption></figure>
         </div>
       </section>
 
@@ -572,6 +616,6 @@
       <a class="footer-blog-link" href="blog.html">Читать блог об отношениях</a>
     </footer>
 
-    <script src="script.js?v=3d4-20260720"></script>
+    <script src="script.js?v=3d5-20260720"></script>
   </body>
 </html>
