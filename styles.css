@@ -3379,6 +3379,14 @@ body.immersive-active .mode-3d-toggle::after {
   }
 }
 
+@media (max-width: 620px), (hover: none) and (pointer: coarse) {
+  .immersive-scene.is-current .orbit-photo img {
+    animation: none;
+    transform: scale(1.025);
+    will-change: auto;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .mode-3d-toggle::before,
   .mode-3d-signal,
