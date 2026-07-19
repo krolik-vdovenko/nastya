@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Для Насти</title>
+    <meta name="description" content="Милый лендинг про любовь, заботу и работу над отношениями.">
+    <meta name="theme-color" content="#fff8f4">
+    <script>
+      (() => {
+        let savedTheme = null;
+        try {
+          savedTheme = localStorage.getItem("nastya-theme");
+        } catch {
+          // Используем системную тему, если браузер запретил локальное хранилище.
+        }
+        const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        document.documentElement.dataset.theme = savedTheme || systemTheme;
+      })();
+    </script>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <a class="skip-link" href="#top">Перейти к содержанию</a>
+    <div class="ambient" aria-hidden="true">
+      <span class="glow glow-one"></span>
+      <span class="glow glow-two"></span>
+      <span class="glow glow-three"></span>
+      <span class="float-heart heart-one">♡</span>
+      <span class="float-heart heart-two">♡</span>
+      <span class="float-heart heart-three">♡</span>
+    </div>
+    <header class="site-header" aria-label="Навигация">
+      <a class="brand" href="#top" aria-label="Для Насти, в начало">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 20.6 4.2 13A5.2 5.2 0 0 1 11.5 5.6l.5.5.5-.5A5.2 5.2 0 0 1 19.8 13L12 20.6Z"/>
+        </svg>
+      </a>
+      <nav class="nav">
+        <a href="#promise">Наш курс</a>
+        <a href="#eyes">Наши глаза</a>
+        <a href="#moments">Моменты</a>
+        <a href="#video">Видео</a>
+        <a class="nav-blog-link" href="blog.html">Блог</a>
+        <a href="#letter">100 причин</a>
+      </nav>
+      <button class="theme-toggle" type="button" aria-label="Включить тёмную тему" title="Включить тёмную тему">
+        <svg class="theme-icon sun-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="4"/>
+          <path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42"/>
+        </svg>
+        <svg class="theme-icon moon-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M20.2 15.2A8.5 8.5 0 0 1 8.8 3.8 8.5 8.5 0 1 0 20.2 15.2Z"/>
+        </svg>
+      </button>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <div class="hero-media" aria-hidden="true">
+          <img src="assets/photo-08.png" alt="">
+        </div>
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+          <p class="eyebrow">маленький сайт про большое чувство</p>
+          <h1>Настя, я выбираю нас</h1>
+          <p class="hero-text">
+            Не только в хорошие дни, не только когда легко. Я хочу учиться слышать тебя,
+            беречь твое сердце и каждый день делать так, чтобы рядом со мной тебе было теплее.
+          </p>
+          <div class="hero-actions">
+            <a class="button primary" href="#promise">Прочитать</a>
+            <a class="button secondary" href="#moments">Наши фото</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="intro section">
+        <div class="intro-copy">
+          <p class="section-kicker">если коротко</p>
+          <h2>Отношения - это не просто чувства. Это когда двое стараются.</h2>
+        </div>
+        <div class="intro-note">
+          <p>
+            Я сделал это место, чтобы напомнить: у нас есть много нежности, смешных кадров,
+            объятий, разговоров и причин не сдаваться друг на друга.
+          </p>
+        </div>
+      </section>
+
+      <section id="eyes" class="section eyes-story">
+        <div class="eyes-photo">
+          <img
+            src="assets/nastya-eyes.jpg"
+            alt="Крупный чёрно-белый портрет Насти, в центре кадра её глаза"
+            width="807"
+            height="1280"
+            loading="lazy"
+          >
+          <span class="eyes-caption">самый красивый взгляд</span>
+        </div>
+        <div class="eyes-copy">
+          <p class="section-kicker">то, в чём я теряюсь</p>
+          <h2>Твои невероятные зелёные глаза</h2>
+          <p class="eyes-lead">
+            В них столько оттенков: нежность, искры, спокойствие и целый мир, который мне хочется узнавать всю жизнь.
+          </p>
+          <p>
+            Они меняются вместе с твоим настроением: становятся ярче, когда ты смеёшься, и особенно глубокими,
+            когда ты о чём-то думаешь. Но для меня они всегда самые красивые. Один твой взгляд умеет сказать больше,
+            чем сотня слов, успокоить, вдохновить и снова напомнить, как сильно я тебя люблю.
+          </p>
+          <div class="green-note">
+            <span aria-hidden="true"></span>
+            Зелёный теперь мой любимый цвет.
+          </div>
+        </div>
+      </section>
+
+      <section id="sasha" class="section eyes-story eyes-story-sasha">
+        <div class="eyes-photo eyes-photo-sasha">
+          <img
+            src="assets/me.jpg"
+            alt="Крупный чёрно-белый портрет Саши, в центре кадра его карие глаза"
+            width="997"
+            height="1577"
+            loading="lazy"
+          >
+          <span class="eyes-caption">самый родной взгляд</span>
+        </div>
+        <div class="eyes-copy">
+          <p class="section-kicker">то, в чём я нахожу спокойствие</p>
+          <h2>Твои тёплые карие глаза</h2>
+          <p class="eyes-lead">
+            В них столько оттенков: нежность, искры, спокойствие и целый мир, который мне хочется узнавать всю жизнь.
+          </p>
+          <p>
+            Они меняются вместе с твоим настроением: становятся ярче, когда ты смеёшься, и особенно глубокими,
+            когда ты о чём-то думаешь. Но для меня они всегда самые родные. Один твой взгляд умеет сказать больше,
+            чем сотня слов, успокоить, согреть и снова напомнить, как сильно я тебя люблю.
+          </p>
+          <div class="brown-note">
+            <span aria-hidden="true"></span>
+            Карий теперь мой любимый цвет.
+          </div>
+        </div>
+      </section>
+
+      <section id="promise" class="section promise">
+        <div class="section-heading">
+          <p class="section-kicker">наш курс</p>
+          <h2>Что я хочу делать для нас</h2>
+        </div>
+        <div class="promise-grid">
+          <article class="promise-card">
+            <span>01</span>
+            <h3>Слушать внимательнее</h3>
+            <p>Не перебивать, не угадывать за тебя, а правда понимать, что ты чувствуешь.</p>
+          </article>
+          <article class="promise-card">
+            <span>02</span>
+            <h3>Беречь спокойствие</h3>
+            <p>Говорить мягче, даже когда сложно, и выбирать нас вместо обид.</p>
+          </article>
+          <article class="promise-card">
+            <span>03</span>
+            <h3>Замечать хорошее</h3>
+            <p>Не привыкать к твоей заботе, красоте и теплу, а благодарить за это чаще.</p>
+          </article>
+          <article class="promise-card">
+            <span>04</span>
+            <h3>Расти рядом</h3>
+            <p>Становиться лучше не на словах, а поступками, которые ты можешь почувствовать.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="split section">
+        <div class="split-photo">
+          <img src="assets/photo-05.png" alt="Совместное фото в зеркале">
+        </div>
+        <div class="split-copy">
+          <p class="section-kicker">важное</p>
+          <h2>Я хочу быть человеком, с которым тебе не страшно быть настоящей.</h2>
+          <p>
+            С улыбкой, усталостью, капризами, мечтами, тишиной и всем, что у тебя внутри.
+            Мне хочется, чтобы ты знала: любовь - это не только красивые слова, а ежедневная забота.
+          </p>
+        </div>
+      </section>
+
+      <section class="section path">
+        <div class="section-heading">
+          <p class="section-kicker">наш путь</p>
+          <h2>Пусть у нас будет больше таких дней</h2>
+        </div>
+        <div class="path-line">
+          <article class="path-step">
+            <span>слышать</span>
+            <h3>Когда важно не победить в споре, а понять друг друга.</h3>
+          </article>
+          <article class="path-step">
+            <span>обнимать</span>
+            <h3>Когда слова закончились, но рядом все равно становится легче.</h3>
+          </article>
+          <article class="path-step">
+            <span>мечтать</span>
+            <h3>Когда мы строим не идеальную картинку, а живую настоящую историю.</h3>
+          </article>
+        </div>
+      </section>
+
+      <section class="future section" aria-labelledby="future-title">
+        <div class="future-photo">
+          <img
+            src="assets/nastya-river.jpg"
+            alt="Настя стоит у воды на фоне города и тянется руками к небу"
+            width="1365"
+            height="2048"
+            loading="lazy"
+          >
+        </div>
+        <div class="future-card">
+          <p class="section-kicker">куда бы ни вела дорога</p>
+          <h2 id="future-title">В будущее вместе</h2>
+          <p>
+            Мне нравится этот кадр: ты тянешься к небу, а впереди целый город и ещё столько всего неизвестного.
+            Я хочу быть рядом во всех наших будущих историях: поддерживать твои мечты, радоваться твоим победам
+            и превращать обычные дни в те, которые хочется сохранить.
+          </p>
+          <span class="future-signature">ты моё любимое «впереди»</span>
+        </div>
+      </section>
+
+      <section id="moments" class="section gallery-section">
+        <div class="section-heading">
+          <p class="section-kicker">моменты</p>
+          <h2>Кадры, в которых уже есть целая история</h2>
+        </div>
+        <div class="gallery">
+          <figure class="tile tall"><img src="assets/photo-01.png" alt="Нежное фото в зеркале"><figcaption>там, где тепло</figcaption></figure>
+          <figure class="tile wide"><img src="assets/photo-02.png" alt="Веселое селфи"><figcaption>смешные мы</figcaption></figure>
+          <figure class="tile"><img src="assets/photo-04.png" alt="Селфи вместе"><figcaption>рядом</figcaption></figure>
+          <figure class="tile tall"><img src="assets/photo-07.png" alt="Объятие у зеркала"><figcaption>мое спокойствие</figcaption></figure>
+          <figure class="tile"><img src="assets/photo-13.png" alt="Селфи в отражении телефона"><figcaption>зима и мы</figcaption></figure>
+          <figure class="tile wide"><img src="assets/photo-06.png" alt="Черно-белое фото"><figcaption>как кино</figcaption></figure>
+          <figure class="tile"><img src="assets/photo-03.png" alt="Фото глаз"><figcaption>один взгляд</figcaption></figure>
+          <figure class="tile"><img src="assets/photo-09.png" alt="Фото в шарфе"><figcaption>милая</figcaption></figure>
+          <figure class="tile wide summer"><img src="assets/photo-14.jpg" alt="Летнее фото вместе"><figcaption>лето рядом</figcaption></figure>
+          <figure class="tile tall summer"><img src="assets/photo-15.jpg" alt="Летний портрет вместе"><figcaption>солнечный день</figcaption></figure>
+          <figure class="tile summer"><img src="assets/photo-16.jpg" alt="Фото Насти на пляже"><figcaption>самая красивая</figcaption></figure>
+        </div>
+      </section>
+
+      <section id="video" class="section video-section">
+        <div class="video-copy">
+          <p class="section-kicker">живой момент</p>
+          <h2>Видео, которое можно пересматривать со звуком</h2>
+          <p>
+            Иногда один короткий фрагмент хранит больше, чем длинный текст:
+            настроение, голос, движение и ощущение, что это было по-настоящему.
+          </p>
+        </div>
+        <div class="video-frame">
+          <video controls preload="metadata" poster="assets/photo-14.jpg">
+            <source src="assets/memory-video.mp4" type="video/mp4">
+            Твой браузер не смог открыть видео.
+          </video>
+        </div>
+      </section>
+
+      <section id="rituals" class="section rituals">
+        <div class="section-heading rituals-heading">
+          <p class="section-kicker">чтобы не забывать</p>
+          <h2 id="rituals-title">Маленькие правила для большой любви</h2>
+          <p class="rituals-lead">
+            Не строгий список, а четыре вещи, которые помогают нам оставаться ближе
+            в обычные и непростые дни.
+          </p>
+        </div>
+        <div class="ritual-board" aria-labelledby="rituals-title">
+          <figure class="ritual-photo">
+            <img
+              src="assets/ritual-night.jpg"
+              alt="Силуэты Саши и Насти в момент поцелуя"
+              width="960"
+              height="1280"
+              loading="lazy"
+            >
+            <figcaption>Наши правила живут не в обещаниях, а в обычных днях.</figcaption>
+          </figure>
+          <article class="ritual ritual-honest">
+            <strong>Говорить честно</strong>
+            <p>Даже если трудно, потому что молчание не должно становиться стеной.</p>
+          </article>
+          <article class="ritual ritual-gentle">
+            <strong>Мириться нежно</strong>
+            <p>Мириться, пока кровать целая.</p>
+          </article>
+          <article class="ritual ritual-dates">
+            <strong>Делать свидания</strong>
+            <p>Иногда простая прогулка или чай вместе лечат лучше любых громких обещаний.</p>
+          </article>
+          <article class="ritual ritual-choose">
+            <strong>Выбирать друг друга</strong>
+            <p>Каждый день, спокойно и по-настоящему.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="blog-preview" class="section blog-preview" aria-labelledby="blog-preview-title">
+        <div class="blog-preview-media">
+          <img
+            src="assets/blog-honest-talk.jpg"
+            alt="Пара спокойно разговаривает дома после трудного дня"
+            width="1568"
+            height="1003"
+            loading="lazy"
+          >
+        </div>
+        <div class="blog-preview-copy">
+          <p class="blog-preview-label">разговоры о важном</p>
+          <h2 id="blog-preview-title">Любить не только когда легко</h2>
+          <p>
+            Большой блог о ссорах, доверии, ревности, быте, поддержке и личных границах.
+            С понятными шагами, готовыми фразами и идеями, которые помогают снова услышать друг друга.
+          </p>
+          <div class="blog-preview-topics" aria-label="Темы блога">
+            <span>спокойный конфликт</span>
+            <span>поддержка</span>
+            <span>доверие</span>
+            <span>границы</span>
+          </div>
+          <a class="button primary" href="blog.html">Открыть блог</a>
+        </div>
+      </section>
+
+      <section id="letter" class="letter section">
+        <div class="letter-card">
+          <p class="section-kicker">личное</p>
+          <h2>Настя, спасибо, что ты есть</h2>
+          <p>
+            Я не хочу, чтобы этот сайт был просто красивой страницей. Пусть он будет напоминанием
+            мне: любовь нужно подтверждать вниманием, терпением, поступками и нежностью.
+          </p>
+          <p>
+            Я хочу, чтобы у нас получалось. Чтобы мы росли, разговаривали, смеялись, обнимались
+            крепче после сложных дней и берегли то, что между нами.
+          </p>
+          <button class="heart-button" type="button" aria-haspopup="dialog" aria-controls="reasons-dialog">
+            Открыть 100 причин
+          </button>
+          <p class="reasons-hint">Я собрал их все в одном большом письме для тебя.</p>
+        </div>
+      </section>
+    </main>
+
+    <dialog id="reasons-dialog" class="reasons-dialog" aria-labelledby="reasons-title">
+      <div class="reasons-shell">
+        <header class="reasons-header">
+          <div>
+            <p class="section-kicker">моё большое признание</p>
+            <h2 id="reasons-title">100 причин, почему я тебя люблю</h2>
+          </div>
+          <form method="dialog">
+            <button class="dialog-close" type="submit" aria-label="Закрыть 100 причин">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="m6 6 12 12M18 6 6 18"/>
+              </svg>
+            </button>
+          </form>
+        </header>
+        <p class="reasons-intro">
+          На самом деле их намного больше. Просто после сотой я перестал считать.
+        </p>
+        <ol id="reasons-list" class="reasons-list"></ol>
+        <div class="reasons-ending">
+          <span>и ещё одна причина</span>
+          <strong>Потому что ты именно такая. И именно тебя я выбираю каждый день.</strong>
+          <form method="dialog">
+            <button class="button primary" type="submit">Обнять и закрыть</button>
+          </form>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog id="photo-dialog" class="photo-dialog" aria-labelledby="photo-title">
+      <div class="photo-dialog-shell">
+        <form method="dialog" class="photo-dialog-close-form">
+          <button class="dialog-close" type="submit" aria-label="Закрыть воспоминание">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m6 6 12 12M18 6 6 18"/>
+            </svg>
+          </button>
+        </form>
+        <div class="photo-dialog-media">
+          <img id="photo-dialog-image" src="" alt="">
+        </div>
+        <div class="photo-dialog-copy">
+          <p class="section-kicker">наше воспоминание</p>
+          <h2 id="photo-title"></h2>
+          <p id="photo-description" class="photo-description"></p>
+          <p class="photo-together">Мне так хорошо с тобой: рядом с тобой даже самые обычные минуты становятся нашей любимой историей.</p>
+          <form method="dialog">
+            <button class="button primary" type="submit">Сохранить в сердце</button>
+          </form>
+        </div>
+      </div>
+    </dialog>
+
+    <footer class="footer">
+      <p>Сделано с любовью. Для нас.</p>
+      <a class="footer-blog-link" href="blog.html">Читать блог об отношениях</a>
+    </footer>
+
+    <script src="script.js"></script>
+  </body>
+</html>

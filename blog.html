@@ -1,0 +1,718 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Блог о нас | Для Насти</title>
+    <meta
+      name="description"
+      content="Большой личный блог об отношениях: как разговаривать после ссор, сохранять близость, поддерживать друг друга, справляться с ревностью и уважать границы."
+    >
+    <meta name="theme-color" content="#fff8f4">
+    <script>
+      (() => {
+        let savedTheme = null;
+        try {
+          savedTheme = localStorage.getItem("nastya-theme");
+        } catch {
+          // Используем системную тему, если локальное хранилище недоступно.
+        }
+        const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        document.documentElement.dataset.theme = savedTheme || systemTheme;
+      })();
+    </script>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="blog.css">
+  </head>
+  <body class="blog-page">
+    <a class="skip-link" href="#blog-main">Перейти к содержанию</a>
+    <div class="reading-progress" aria-hidden="true"></div>
+    <div class="ambient" aria-hidden="true">
+      <span class="glow glow-one"></span>
+      <span class="glow glow-two"></span>
+      <span class="glow glow-three"></span>
+    </div>
+
+    <header class="site-header blog-header" aria-label="Навигация по блогу">
+      <a class="brand" href="index.html" aria-label="Вернуться на главную">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 20.6 4.2 13A5.2 5.2 0 0 1 11.5 5.6l.5.5.5-.5A5.2 5.2 0 0 1 19.8 13L12 20.6Z"/>
+        </svg>
+      </a>
+      <a
+        class="blog-home-link"
+        href="index.html"
+        aria-label="Вернуться на главную страницу про Сашу и Настю"
+      >Саша и Настя</a>
+      <nav class="nav">
+        <a href="#articles">Все темы</a>
+        <a href="#conflicts">Ссоры</a>
+        <a href="#trust">Доверие</a>
+        <a href="#support">Поддержка</a>
+      </nav>
+      <button class="theme-toggle" type="button" aria-label="Включить тёмную тему" title="Включить тёмную тему">
+        <svg class="theme-icon sun-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="4"/>
+          <path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42"/>
+        </svg>
+        <svg class="theme-icon moon-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M20.2 15.2A8.5 8.5 0 0 1 8.8 3.8 8.5 8.5 0 1 0 20.2 15.2Z"/>
+        </svg>
+      </button>
+    </header>
+
+    <main id="blog-main">
+      <section class="blog-hero" aria-labelledby="blog-title">
+        <div class="blog-hero-media">
+          <img
+            src="assets/blog-honest-talk.jpg"
+            alt="Пара спокойно разговаривает дома после трудного дня"
+            width="1568"
+            height="1003"
+          >
+        </div>
+        <div class="blog-hero-overlay"></div>
+        <div class="blog-hero-content">
+          <p class="eyebrow">блог о близости без идеальной картинки</p>
+          <h1 id="blog-title">Любить и в трудные дни</h1>
+          <p>Честно о ссорах, доверии, быте, границах и способах снова находить друг друга.</p>
+          <div class="hero-actions">
+            <a class="button primary" href="#conflicts">Начать с главного</a>
+            <a class="button secondary" href="#articles">Все темы</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="section blog-intro" aria-labelledby="intro-title">
+        <div>
+          <h2 id="intro-title">Хорошие отношения тоже бывают сложными</h2>
+        </div>
+        <div class="blog-intro-copy">
+          <p>
+            Они бывают живыми. В них двое могут устать, обидеться, не понять друг друга и всё равно вернуться к разговору.
+            Задача не в том, чтобы никогда не ссориться. Важно научиться проходить сложные моменты без унижения,
+            страха и ощущения, что любовь каждый раз стоит на краю.
+          </p>
+          <p>
+            Этот блог не про универсальные рецепты. Он про навыки, которые можно тренировать: замечать напряжение,
+            говорить о потребностях, выдерживать различия, извиняться, восстанавливать доверие и вовремя просить о помощи.
+          </p>
+        </div>
+        <div class="intro-principles" aria-label="Три принципа блога">
+          <article>
+            <strong>Мы против проблемы</strong>
+            <p>Не искать виноватого, а вместе разбираться, что происходит между нами.</p>
+          </article>
+          <article>
+            <strong>Сначала безопасность</strong>
+            <p>Пауза лучше слов, после которых долго приходится восстанавливаться.</p>
+          </article>
+          <article>
+            <strong>Любовь видна в действиях</strong>
+            <p>Близость держится на маленьких повторяемых поступках, а не на редких громких обещаниях.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="articles" class="section article-index" aria-labelledby="articles-title">
+        <header class="index-heading">
+          <h2 id="articles-title">Шесть важных разговоров</h2>
+          <p>Можно читать по порядку или сразу открыть тему, которая сейчас болит сильнее всего.</p>
+        </header>
+
+        <div class="article-map">
+          <a class="article-card article-card-featured" href="#conflicts">
+            <span class="article-card-media">
+              <img
+                src="assets/blog-honest-talk.jpg"
+                alt="Спокойный разговор пары дома"
+                width="1568"
+                height="1003"
+                loading="lazy"
+              >
+            </span>
+            <span class="article-card-copy">
+              <small>конфликты</small>
+              <strong>Как ссориться и не разрушать близость</strong>
+              <span>Пауза, ясные слова, одна тема за раз и обязательное восстановление контакта.</span>
+            </span>
+          </a>
+
+          <a class="article-card" href="#routine">
+            <span class="article-card-media">
+              <img
+                src="assets/blog-everyday-care.jpg"
+                alt="Пара вместе готовит обычный домашний ужин"
+                width="1536"
+                height="1024"
+                loading="lazy"
+              >
+            </span>
+            <span class="article-card-copy">
+              <small>быт и близость</small>
+              <strong>Что делать, когда отношения стали рутиной</strong>
+              <span>Вернуть внимание, разделить нагрузку и снова создавать общие впечатления.</span>
+            </span>
+          </a>
+
+          <a class="article-card" href="#trust">
+            <span class="article-card-media">
+              <img
+                src="assets/blog-space.jpg"
+                alt="Пара идёт рядом по тихой дорожке у воды"
+                width="1672"
+                height="941"
+                loading="lazy"
+              >
+            </span>
+            <span class="article-card-copy">
+              <small>доверие</small>
+              <strong>Ревность: чувство, сигнал или попытка контроля</strong>
+              <span>Как говорить о страхе потери и не превращать тревогу в запреты.</span>
+            </span>
+          </a>
+
+          <a class="article-card article-card-tall" href="#support">
+            <span class="article-card-media">
+              <img
+                src="assets/blog-support.jpg"
+                alt="Один партнёр бережно поддерживает другого на диване"
+                width="1122"
+                height="1402"
+                loading="lazy"
+              >
+            </span>
+            <span class="article-card-copy">
+              <small>трудные дни</small>
+              <strong>Как поддержать, а не начать спасать</strong>
+              <span>Спросить, что нужно, выдержать чувства и не отнимать у близкого его самостоятельность.</span>
+            </span>
+          </a>
+
+          <a class="article-card" href="#boundaries">
+            <span class="article-card-media">
+              <img
+                src="assets/photo-05.png"
+                alt="Личный совместный снимок пары в зеркале"
+                loading="lazy"
+              >
+            </span>
+            <span class="article-card-copy">
+              <small>границы</small>
+              <strong>Как быть близкими и не терять себя</strong>
+              <span>Личное время, право на отказ и договорённости без наказания молчанием.</span>
+            </span>
+          </a>
+
+          <a class="article-card" href="#repair">
+            <span class="article-card-media">
+              <img
+                src="assets/photo-06.png"
+                alt="Тёплый чёрно-белый совместный снимок"
+                loading="lazy"
+              >
+            </span>
+            <span class="article-card-copy">
+              <small>восстановление</small>
+              <strong>Извинение, после которого правда становится легче</strong>
+              <span>Признать конкретный поступок, услышать последствия и показать изменение делом.</span>
+            </span>
+          </a>
+        </div>
+      </section>
+
+      <article id="conflicts" class="section guide guide-conflicts" aria-labelledby="conflicts-title">
+        <header class="guide-header">
+          <div class="guide-number" aria-hidden="true">01</div>
+          <div>
+            <p class="guide-topic">Конфликты</p>
+            <h2 id="conflicts-title">Как ссориться и не разрушать близость</h2>
+            <p class="guide-lead">
+              Конфликт начинается не с громкого голоса. Обычно сначала появляется ощущение: меня не слышат,
+              со мной не считаются или меня сейчас отвергнут. Если поймать этот момент раньше, разговор можно повернуть.
+            </p>
+          </div>
+        </header>
+
+        <div class="guide-layout">
+          <aside class="guide-aside">
+            <strong>Главная мысль</strong>
+            <p>Цель разговора не победить, а сделать проблему понятной обоим.</p>
+            <nav aria-label="Содержание статьи о конфликтах">
+              <a href="#conflict-cycle">Цикл ссоры</a>
+              <a href="#conflict-plan">План разговора</a>
+              <a href="#conflict-phrases">Фразы без нападения</a>
+            </nav>
+          </aside>
+
+          <div class="guide-body">
+            <section id="conflict-cycle" class="prose-block">
+              <h3>Сначала увидеть цикл, а не искать виноватого</h3>
+              <p>
+                У многих пар повторяется один и тот же сценарий. Один требует разговора прямо сейчас, потому что боится
+                дистанции. Второй закрывается, потому что боится давления. Чем сильнее первый добивается ответа,
+                тем дальше уходит второй. В итоге оба получают именно то, чего опасались.
+              </p>
+              <div class="cycle-line" aria-label="Типичный цикл конфликта">
+                <span>тревога</span>
+                <span>давление</span>
+                <span>защита</span>
+                <span>дистанция</span>
+                <span>ещё больше тревоги</span>
+              </div>
+              <p>
+                Полезная формулировка: «Кажется, мы снова попали в наш круг: я давлю, ты закрываешься, и нам обоим
+                становится хуже. Давай остановим сам круг». Она переводит внимание с характера партнёра на общий процесс.
+              </p>
+            </section>
+
+            <section id="conflict-plan" class="prose-block">
+              <h3>План безопасного разговора</h3>
+              <div class="action-steps">
+                <article>
+                  <span>Остановить разгон</span>
+                  <p>Если голос растёт, тело напряжено, а мысли повторяются, договоритесь о паузе. Назовите точное время возвращения: «Давай продолжим через 30 минут».</p>
+                </article>
+                <article>
+                  <span>Вернуть тело в спокойствие</span>
+                  <p>Вода, медленная ходьба, тишина, дыхание с длинным выдохом. Пауза нужна не для наказания, а чтобы снова уметь слышать.</p>
+                </article>
+                <article>
+                  <span>Оставить одну тему</span>
+                  <p>Не присоединять старые ошибки, родственников и «ты всегда». Сформулируйте один конкретный эпизод, который хотите понять.</p>
+                </article>
+                <article>
+                  <span>Говорить о своём опыте</span>
+                  <p>Формула: событие, чувство, потребность, просьба. «Когда планы меняются без сообщения, я тревожусь. Мне важна предсказуемость. Напиши, пожалуйста».</p>
+                </article>
+                <article>
+                  <span>Проверить понимание</span>
+                  <p>Перед ответом перескажите смысл услышанного: «Я правильно понял, что дело не в опоздании, а в ощущении, что о тебе забыли?»</p>
+                </article>
+                <article>
+                  <span>Закрыть разговор действием</span>
+                  <p>Договорённость должна быть наблюдаемой: кто, что и когда делает. После неё важно вернуть тепло, если оба к этому готовы.</p>
+                </article>
+              </div>
+            </section>
+
+            <section id="conflict-phrases" class="prose-block">
+              <h3>Фразы, которые снижают защиту</h3>
+              <div class="phrase-table" role="table" aria-label="Фразы для спокойного разговора">
+                <div class="phrase-row phrase-head" role="row">
+                  <span role="columnheader">Вместо</span>
+                  <span role="columnheader">Можно сказать</span>
+                </div>
+                <div class="phrase-row" role="row">
+                  <span role="cell">«Тебе всё равно»</span>
+                  <span role="cell">«Сейчас я чувствую себя неважным и хочу понять, что происходит»</span>
+                </div>
+                <div class="phrase-row" role="row">
+                  <span role="cell">«Ты никогда меня не слушаешь»</span>
+                  <span role="cell">«Мне нужно пять минут договорить без перебивания, потом я выслушаю тебя»</span>
+                </div>
+                <div class="phrase-row" role="row">
+                  <span role="cell">«Успокойся»</span>
+                  <span role="cell">«Я вижу, что тебе тяжело. Продолжим сейчас или лучше сделаем паузу?»</span>
+                </div>
+                <div class="phrase-row" role="row">
+                  <span role="cell">«Делай что хочешь»</span>
+                  <span role="cell">«Я пока не готов согласиться, но хочу найти вариант, который учтёт нас обоих»</span>
+                </div>
+              </div>
+              <div class="copy-script">
+                <p id="conflict-script">
+                  «Я не хочу с тобой воевать. Я хочу объяснить, что меня задело, услышать твою сторону и вместе решить,
+                  что мы можем сделать иначе в следующий раз».
+                </p>
+                <button
+                  class="copy-button"
+                  type="button"
+                  data-copy-target="conflict-script"
+                  data-default-label="Скопировать фразу"
+                >Скопировать фразу</button>
+                <span class="copy-status" aria-live="polite"></span>
+              </div>
+            </section>
+
+            <aside class="important-note">
+              <strong>Стоп-сигналы</strong>
+              <p>
+                Оскорбления, угрозы расставанием ради давления, ломание вещей, блокирование выхода, запугивание и любое
+                физическое действие не являются «обычной ссорой». В такой ситуации важнее безопасность, дистанция и помощь извне.
+              </p>
+            </aside>
+          </div>
+        </div>
+      </article>
+
+      <article id="routine" class="routine-story" aria-labelledby="routine-title">
+        <div class="routine-photo">
+          <img
+            src="assets/blog-everyday-care.jpg"
+            alt="Пара делит домашние дела и готовит вместе"
+            width="1536"
+            height="1024"
+            loading="lazy"
+          >
+        </div>
+        <div class="section routine-content">
+          <header>
+            <p class="guide-topic">Быт и близость</p>
+            <h2 id="routine-title">Когда любовь спряталась за делами</h2>
+            <p class="guide-lead">
+              Рутина не доказывает, что чувства закончились. Часто она говорит, что отношениям не хватает внимания,
+              новизны или справедливого распределения нагрузки.
+            </p>
+          </header>
+
+          <div class="routine-grid">
+            <section>
+              <h3>Разделить не только дела, но и ответственность</h3>
+              <p>
+                Нагрузка состоит не только из мытья посуды. Есть ещё планирование, напоминания, покупки и контроль сроков.
+                Полезно выписать весь бытовой цикл и передавать задачи целиком, а не ждать указаний от того, кто и так всё держит в голове.
+              </p>
+            </section>
+            <section>
+              <h3>Вернуть маленькие точки контакта</h3>
+              <p>
+                Десять минут без телефонов после работы, объятие перед уходом, чай перед сном или короткая прогулка.
+                Регулярность обычно важнее масштаба. Маленький ритуал работает, когда он приятен обоим и не превращается в обязанность.
+              </p>
+            </section>
+            <section>
+              <h3>Не ждать, пока свидание «случится»</h3>
+              <p>
+                Взрослая жизнь редко освобождает вечер сама. Планируйте время заранее, чередуйте инициативу и не оценивайте
+                близость по стоимости события. Новая улица, совместный завтрак или настольная игра уже создают общую память.
+              </p>
+            </section>
+            <section>
+              <h3>Оставлять место отдельной жизни</h3>
+              <p>
+                Интерес к партнёру легче сохранять, когда у каждого есть собственные занятия, друзья и впечатления.
+                Личное пространство не крадёт близость. Оно приносит в отношения воздух и новые темы.
+              </p>
+            </section>
+          </div>
+
+          <section class="weekly-check" aria-labelledby="weekly-title">
+            <div>
+              <h3 id="weekly-title">Разговор раз в неделю</h3>
+              <p>Не отчёт и не разбор ошибок. Двадцать спокойных минут, чтобы не копить важное.</p>
+            </div>
+            <ol>
+              <li>Что на этой неделе помогло мне чувствовать нашу близость?</li>
+              <li>Где мне было трудно или одиноко?</li>
+              <li>За что я хочу тебя поблагодарить?</li>
+              <li>Что одно мы можем сделать для нас на следующей неделе?</li>
+            </ol>
+          </section>
+        </div>
+      </article>
+
+      <article id="trust" class="section trust-story" aria-labelledby="trust-title">
+        <div class="trust-heading">
+          <p class="guide-topic">Доверие</p>
+          <h2 id="trust-title">Ревность просит ясности, но не даёт права контролировать</h2>
+          <p class="guide-lead">
+            Ревность может появляться из страха потери, прошлого опыта, реальной неопределённости или нарушения договорённостей.
+            Чувство допустимо. Слежка, проверки, унижение и запреты не становятся допустимыми из-за сильного чувства.
+          </p>
+        </div>
+
+        <figure class="trust-photo">
+          <img
+            src="assets/blog-space.jpg"
+            alt="Пара идёт рядом, сохраняя спокойную близость и личное пространство"
+            width="1672"
+            height="941"
+            loading="lazy"
+          >
+        </figure>
+
+        <div class="trust-columns">
+          <section>
+            <h3>Разобрать тревогу на части</h3>
+            <dl class="signal-list">
+              <div>
+                <dt>Факт</dt>
+                <dd>Что произошло без догадок: сообщение осталось без ответа несколько часов.</dd>
+              </div>
+              <div>
+                <dt>История в голове</dt>
+                <dd>Какой смысл возник: «Я больше не важен» или «От меня что-то скрывают».</dd>
+              </div>
+              <div>
+                <dt>Чувство</dt>
+                <dd>Тревога, злость, стыд, одиночество или страх быть оставленным.</dd>
+              </div>
+              <div>
+                <dt>Потребность</dt>
+                <dd>Ясность, честность, предсказуемость, подтверждение связи или пересмотр договорённости.</dd>
+              </div>
+            </dl>
+          </section>
+
+          <section>
+            <h3>Строить доверие наблюдаемыми действиями</h3>
+            <ul class="trust-actions">
+              <li><strong>Говорить заранее.</strong> Не прятать информацию, которая явно влияет на общие договорённости.</li>
+              <li><strong>Совпадать в словах и делах.</strong> Выполнять обещанное или предупреждать, если планы изменились.</li>
+              <li><strong>Не требовать мгновенного прощения.</strong> После обмана доверие возвращается медленнее, чем произносится извинение.</li>
+              <li><strong>Договариваться конкретно.</strong> Что для каждого считается флиртом, тайной, личной перепиской и уважением.</li>
+              <li><strong>Не превращать прозрачность в бессрочный надзор.</strong> Временные меры восстановления должны иметь цель и пересмотр.</li>
+            </ul>
+          </section>
+        </div>
+
+        <div class="trust-boundary">
+          <p>
+            Здоровая просьба звучит так: «Мне тревожно, когда планы меняются и я ничего не знаю. Давай договоримся предупреждать».
+            Контроль звучит так: «Ты обязан всегда отвечать сразу, присылать геолокацию и отказаться от людей, которые мне не нравятся».
+          </p>
+        </div>
+      </article>
+
+      <article id="support" class="support-story" aria-labelledby="support-title">
+        <div class="support-photo">
+          <img
+            src="assets/blog-support.jpg"
+            alt="Бережная поддержка близкого человека в трудный день"
+            width="1122"
+            height="1402"
+            loading="lazy"
+          >
+        </div>
+        <div class="support-content">
+          <header>
+            <p class="guide-topic">Трудные дни</p>
+            <h2 id="support-title">Поддержать, не забирая чужую жизнь себе</h2>
+            <p class="guide-lead">
+              Иногда близкому нужен совет. Иногда чашка чая, тишина или помощь с одной конкретной задачей.
+              Лучший первый шаг не угадывать, а спросить.
+            </p>
+          </header>
+
+          <div class="support-menu">
+            <details open>
+              <summary>Если человеку нужно, чтобы его выслушали</summary>
+              <div>
+                <p>Уберите телефон, не перебивайте и не спорьте с чувствами. Можно не соглашаться с выводами, но признать переживание.</p>
+                <blockquote>«Похоже, ты очень устала и разочарована. Я рядом. Хочешь рассказать всё до конца?»</blockquote>
+              </div>
+            </details>
+            <details>
+              <summary>Если нужна практическая помощь</summary>
+              <div>
+                <p>Предложите два конкретных варианта вместо общего «обращайся». Например, приготовить ужин или взять на себя звонок.</p>
+                <blockquote>«Я могу сегодня заняться едой или сходить за покупками. Что снимет с тебя больше нагрузки?»</blockquote>
+              </div>
+            </details>
+            <details>
+              <summary>Если человеку нужно пространство</summary>
+              <div>
+                <p>Не принимать паузу автоматически на свой счёт. Уточнить длительность и способ возвращения к контакту.</p>
+                <blockquote>«Хорошо, я дам тебе тишину. Давай через час я напишу и спрошу, хочется ли тебе компании».</blockquote>
+              </div>
+            </details>
+          </div>
+
+          <aside class="support-dont">
+            <h3>Что часто мешает</h3>
+            <p>
+              Сравнивать с чужими проблемами, торопить с решением, обесценивать словами «не переживай», давать советы без запроса,
+              требовать благодарности или делать чужую боль доказательством собственной незаменимости.
+            </p>
+          </aside>
+        </div>
+      </article>
+
+      <article id="boundaries" class="section boundaries-story" aria-labelledby="boundaries-title">
+        <header>
+          <p class="guide-topic">Границы</p>
+          <h2 id="boundaries-title">Близость не требует растворяться друг в друге</h2>
+          <p class="guide-lead">
+            Граница сообщает, что я буду делать для защиты своего времени, тела и достоинства.
+            Она не объясняет, как другой человек обязан жить.
+          </p>
+        </header>
+
+        <div class="boundary-compare">
+          <section>
+            <h3>Граница</h3>
+            <p>Описывает моё действие и остаётся выполнимой без подчинения партнёра.</p>
+            <ul>
+              <li>«Я не продолжаю разговор, когда меня оскорбляют. Вернусь, когда мы оба сможем говорить спокойно».</li>
+              <li>«Сегодня мне нужен вечер наедине. Завтра давай поужинаем вместе».</li>
+              <li>«Я не готов давать пароль от личной переписки, но готов обсудить, что вызывает тревогу».</li>
+            </ul>
+          </section>
+          <section>
+            <h3>Контроль</h3>
+            <p>Требует управлять выбором другого и часто подкрепляется страхом или наказанием.</p>
+            <ul>
+              <li>«Ты не имеешь права заканчивать разговор, пока я не разрешу».</li>
+              <li>«Если любишь, будешь проводить всё свободное время со мной».</li>
+              <li>«Покажи телефон, иначе я устрою скандал».</li>
+            </ul>
+          </section>
+        </div>
+
+        <div class="boundary-practice">
+          <div>
+            <h3>Формула спокойной границы</h3>
+            <p><strong>Ситуация:</strong> когда происходит конкретное действие.</p>
+            <p><strong>Влияние:</strong> что я чувствую или почему это для меня важно.</p>
+            <p><strong>Действие:</strong> что я сделаю или о чём прошу договориться.</p>
+          </div>
+          <blockquote>
+            «Когда наши личные переписки читают без спроса, я чувствую, что моё пространство не уважают.
+            Я не согласен на это. Если тебе тревожно, давай обсуждать тревогу прямо».
+          </blockquote>
+        </div>
+
+        <div class="boundary-reminder">
+          <strong>Отказ не отменяет любовь.</strong>
+          <p>
+            У каждого есть право не хотеть разговора, прикосновения, поездки или близости в конкретный момент.
+            Согласие должно быть свободным, ясным и его можно отозвать в любой момент без наказания.
+          </p>
+        </div>
+      </article>
+
+      <article id="repair" class="section repair-story" aria-labelledby="repair-title">
+        <header class="repair-heading">
+          <p class="guide-topic">Восстановление</p>
+          <h2 id="repair-title">Извинение, которое меняет не только настроение</h2>
+          <p class="guide-lead">
+            «Прости, если ты обиделась» перекладывает ответственность на чувства другого. Настоящее извинение называет поступок,
+            признаёт последствия и показывает, что будет иначе.
+          </p>
+        </header>
+
+        <div class="repair-steps">
+          <article>
+            <span>Назвать</span>
+            <h3>Что именно я сделал</h3>
+            <p>Без общих слов и смягчающих оборотов. «Я повысил голос и перебивал тебя».</p>
+          </article>
+          <article>
+            <span>Признать</span>
+            <h3>Как это повлияло</h3>
+            <p>«Из-за этого ты могла почувствовать себя небезопасно и неуслышанной».</p>
+          </article>
+          <article>
+            <span>Ответить</span>
+            <h3>Без оправдания</h3>
+            <p>Контекст можно обсудить позже. Усталость объясняет состояние, но не отменяет ответственности.</p>
+          </article>
+          <article>
+            <span>Спросить</span>
+            <h3>Что поможет сейчас</h3>
+            <p>Не требовать немедленного объятия или прощения. Дать человеку выбрать темп восстановления.</p>
+          </article>
+          <article>
+            <span>Изменить</span>
+            <h3>Как я поступлю иначе</h3>
+            <p>«Если снова почувствую, что закипаю, назову паузу и вернусь к разговору в согласованное время».</p>
+          </article>
+        </div>
+
+        <div class="repair-example">
+          <div>
+            <h3>Пример полного извинения</h3>
+            <p id="repair-script">
+              «Я перебил тебя и сказал резкие слова. Это было неуважительно и сделало разговор небезопасным.
+              Я отвечаю за это. Мне жаль. Я не прошу тебя сразу успокоиться. Скажи, пожалуйста, что поможет сейчас.
+              В следующий раз я возьму паузу раньше и обязательно вернусь к теме».
+            </p>
+          </div>
+          <button
+            class="copy-button"
+            type="button"
+            data-copy-target="repair-script"
+            data-default-label="Скопировать пример"
+          >Скопировать пример</button>
+          <span class="copy-status" aria-live="polite"></span>
+        </div>
+      </article>
+
+      <section class="section reset-tool" aria-labelledby="reset-title">
+        <div>
+          <h2 id="reset-title">Если разговор зашёл в тупик</h2>
+          <p>Короткий план возвращения к контакту. Он не решит всё, но поможет не сделать хуже.</p>
+        </div>
+        <div class="reset-sequence">
+          <article>
+            <strong>Стоп</strong>
+            <p>Прекратить спор до оскорблений и угроз.</p>
+          </article>
+          <article>
+            <strong>Пауза</strong>
+            <p>Назвать время, когда вы вернётесь к теме.</p>
+          </article>
+          <article>
+            <strong>Смысл</strong>
+            <p>Каждому сформулировать одну главную боль.</p>
+          </article>
+          <article>
+            <strong>Просьба</strong>
+            <p>Сделать одну конкретную и выполнимую просьбу.</p>
+          </article>
+          <article>
+            <strong>Проверка</strong>
+            <p>Через день спросить, помогла ли договорённость.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="safety-section" aria-labelledby="safety-title">
+        <div class="section safety-inner">
+          <div>
+            <p class="section-kicker">когда одних разговоров недостаточно</p>
+            <h2 id="safety-title">Просить о помощи нормально</h2>
+          </div>
+          <div class="safety-copy">
+            <p>
+              Парный психолог или семейный консультант может помочь, если одни и те же конфликты повторяются,
+              разговор быстро становится разрушительным, доверие не восстанавливается или близость исчезла надолго.
+              Специалист не выбирает победителя. Он помогает увидеть цикл и научиться новому способу разговаривать.
+            </p>
+            <p>
+              Если в отношениях есть страх, угрозы, преследование, изоляция, финансовый контроль, сексуальное принуждение
+              или физическое насилие, совместная терапия может быть небезопасной. Сначала важно обратиться к доверенному человеку,
+              профильной службе помощи или местным экстренным службам и продумать безопасный план.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section blog-ending" aria-labelledby="ending-title">
+        <div class="ending-photo">
+          <img
+            src="assets/photo-14.jpg"
+            alt="Личный летний снимок пары"
+            loading="lazy"
+          >
+        </div>
+        <div class="ending-copy">
+          <h2 id="ending-title">Мы не обязаны быть идеальными. Нам важно оставаться бережными.</h2>
+          <p>
+            Отношения растут не потому, что двое никогда не ошибаются. Они растут, когда ошибку можно назвать,
+            боль можно услышать, а любовь снова подтвердить поступком.
+          </p>
+          <a class="button primary" href="index.html">Вернуться к нашей истории</a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer blog-footer">
+      <p>Сделано с любовью. Для нас.</p>
+      <a href="#blog-main">В начало блога</a>
+    </footer>
+
+    <script src="blog.js"></script>
+  </body>
+</html>
