@@ -267,7 +267,6 @@ const warmImmersiveImages = () => {
 
   immersiveWarmupPromise = Promise.allSettled([
     ...immersiveImages.map((image) => image.decode?.() ?? Promise.resolve()),
-    warmHeartHands(),
   ]);
 
   return immersiveWarmupPromise;
@@ -1913,19 +1912,19 @@ const enterImmersiveMode = () => {
   immersiveActiveScene = -1;
   resetImmersivePointer();
 
-  const introPromise = playHeartIntro();
   const warmupPromise = warmImmersiveImages();
-  Promise.allSettled([introPromise, warmupPromise]).then(() => {
+  setImmersiveExitReady(true);
+  warmupPromise.finally(() => {
     if (entryToken !== immersiveEntryToken || !isImmersiveActive()) return;
     immersiveEntryPending = false;
     mode3dButton.removeAttribute("aria-busy");
-    setImmersiveExitReady(true);
   });
 
   requestAnimationFrame(() => {
     refreshImmersiveMetrics(true);
     window.scrollTo(0, 0);
     updateImmersiveProgress();
+    setImmersiveExitReady(true);
     mode3dButton.focus({ preventScroll: true });
   });
 };
