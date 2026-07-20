@@ -170,6 +170,14 @@ const immersiveScenes = immersiveShell
 const immersiveScenePhotos = immersiveScenes.map((scene) =>
   Array.from(scene.querySelectorAll(".orbit-photo"))
 );
+const immersivePhotoDirections = immersiveScenePhotos.map((photos) =>
+  photos.map((photo, photoIndex) => {
+    const anchor = Number.parseFloat(photo.style.getPropertyValue("--x"));
+
+    if (Number.isFinite(anchor)) return anchor < 35 ? -1 : 1;
+    return photoIndex === 0 ? -1 : 1;
+  })
+);
 const immersiveProgressFill = immersiveShell?.querySelector(".immersive-progress-fill");
 const immersiveCounterCurrent = immersiveShell?.querySelector(".immersive-counter-current");
 const immersiveCounterTotal = immersiveShell?.querySelector(".immersive-counter-total");
@@ -423,8 +431,13 @@ const applyImmersiveFlight = (scene, sceneIndex, distance, stageHeight, flatMode
   immersiveScenePhotos[sceneIndex]?.forEach((photo, photoIndex) => {
     const vector = route.photos[photoIndex] || route.photos[route.photos.length - 1];
     const mobilePhotoScale = flatMode ? 0.46 : 1;
+    const horizontalDirection = immersivePhotoDirections[sceneIndex]?.[photoIndex] ?? 1;
+    const outwardFlight = Math.abs(vector.x) * horizontalDirection;
 
-    setInlineProperty(photo, "--photo-flight-x", `${(vector.x * horizontalScale * travel).toFixed(2)}px`);
+    // Keep every card on its own side of the composition while it enters and
+    // leaves. This prevents neighbouring photos from crossing and clipping
+    // through one another, and makes reverse scrolling retrace the same path.
+    setInlineProperty(photo, "--photo-flight-x", `${(outwardFlight * horizontalScale * travel).toFixed(2)}px`);
     setInlineProperty(photo, "--photo-flight-y", `${(vector.y * verticalScale * travel).toFixed(2)}px`);
     setInlineProperty(photo, "--photo-flight-z", `${(flatMode ? 0 : vector.z * travel).toFixed(2)}px`);
     setInlineProperty(photo, "--photo-flight-rx", `${(flatMode ? 0 : vector.rotateX * travel).toFixed(3)}deg`);
