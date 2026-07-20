@@ -178,6 +178,10 @@ const immersivePhotoDirections = immersiveScenePhotos.map((photos) =>
     return photoIndex === 0 ? -1 : 1;
   })
 );
+// Selected chapters deliberately let their cards cross paths. The near card
+// is lifted toward the camera during the pass so it covers the other card as
+// one solid surface instead of letting two transformed planes intersect.
+const immersivePassScenes = new Set([0, 2, 3, 6]);
 const immersiveProgressFill = immersiveShell?.querySelector(".immersive-progress-fill");
 const immersiveCounterCurrent = immersiveShell?.querySelector(".immersive-counter-current");
 const immersiveCounterTotal = immersiveShell?.querySelector(".immersive-counter-total");
@@ -433,15 +437,20 @@ const applyImmersiveFlight = (scene, sceneIndex, distance, stageHeight, flatMode
     const mobilePhotoScale = flatMode ? 0.46 : 1;
     const horizontalDirection = immersivePhotoDirections[sceneIndex]?.[photoIndex] ?? 1;
     const outwardFlight = Math.abs(vector.x) * horizontalDirection;
+    const usesCleanPass = !flatMode && immersivePassScenes.has(sceneIndex);
+    const isForeground = photo.classList.contains("is-near");
+    const passProgress = usesCleanPass ? smoothstep(0.08, 0.72, travel) : 0;
+    const passDepth = passProgress * (isForeground ? 320 : -72);
+    const horizontalFlight = usesCleanPass ? vector.x : outwardFlight;
+    const depthFlight = flatMode ? 0 : vector.z * travel * 1.22 + passDepth;
 
-    // Keep every card on its own side of the composition while it enters and
-    // leaves. This prevents neighbouring photos from crossing and clipping
-    // through one another, and makes reverse scrolling retrace the same path.
-    setInlineProperty(photo, "--photo-flight-x", `${(outwardFlight * horizontalScale * travel).toFixed(2)}px`);
+    setInlineProperty(photo, "--photo-flight-x", `${(horizontalFlight * horizontalScale * travel).toFixed(2)}px`);
     setInlineProperty(photo, "--photo-flight-y", `${(vector.y * verticalScale * travel).toFixed(2)}px`);
-    setInlineProperty(photo, "--photo-flight-z", `${(flatMode ? 0 : vector.z * travel).toFixed(2)}px`);
+    setInlineProperty(photo, "--photo-flight-z", `${depthFlight.toFixed(2)}px`);
     setInlineProperty(photo, "--photo-flight-rx", `${(flatMode ? 0 : vector.rotateX * travel).toFixed(3)}deg`);
     setInlineProperty(photo, "--photo-flight-ry", `${(flatMode ? 0 : vector.rotateY * travel).toFixed(3)}deg`);
+    setInlineProperty(photo, "--photo-layer", String(isForeground ? 6 : photo.classList.contains("is-far") ? 1 : 3));
+    setInlineProperty(photo, "--photo-pass", passProgress.toFixed(4));
     setInlineProperty(
       photo,
       "--photo-flight-rz",
@@ -553,7 +562,7 @@ const renderImmersiveProgress = (progress, stageHeight) => {
     const presence = distance < 0
       ? 1 - smoothstep(0.08, 0.58, absoluteDistance)
       : 1 - smoothstep(0, 0.4, absoluteDistance);
-    const opacity = Math.pow(presence, 0.82);
+    const opacity = presence > 0.985 ? 1 : Math.pow(presence, 0.82);
     const copyWindow = clamp((presence - 0.48) / 0.52, 0, 1);
     const copyPresence = copyWindow * copyWindow * (3 - 2 * copyWindow);
     const whisperPresence = Math.pow(presence, 2.2);
@@ -615,6 +624,12 @@ const updateImmersivePointer = () => {
   immersiveStage.style.setProperty("--mid-y", `${(pointerY * -12).toFixed(2)}px`);
   immersiveStage.style.setProperty("--far-x", `${(pointerX * 10).toFixed(2)}px`);
   immersiveStage.style.setProperty("--far-y", `${(pointerY * 7).toFixed(2)}px`);
+  immersiveStage.style.setProperty("--near-rx", `${(pointerY * 6).toFixed(3)}deg`);
+  immersiveStage.style.setProperty("--near-ry", `${(pointerX * -8).toFixed(3)}deg`);
+  immersiveStage.style.setProperty("--mid-rx", `${(pointerY * 3).toFixed(3)}deg`);
+  immersiveStage.style.setProperty("--mid-ry", `${(pointerX * -4).toFixed(3)}deg`);
+  immersiveStage.style.setProperty("--far-rx", `${(pointerY * -2).toFixed(3)}deg`);
+  immersiveStage.style.setProperty("--far-ry", `${(pointerX * 3).toFixed(3)}deg`);
 };
 
 const scheduleImmersivePointer = () => {
@@ -633,6 +648,12 @@ const resetImmersivePointer = () => {
   immersiveStage.style.setProperty("--mid-y", "0px");
   immersiveStage.style.setProperty("--far-x", "0px");
   immersiveStage.style.setProperty("--far-y", "0px");
+  immersiveStage.style.setProperty("--near-rx", "0deg");
+  immersiveStage.style.setProperty("--near-ry", "0deg");
+  immersiveStage.style.setProperty("--mid-rx", "0deg");
+  immersiveStage.style.setProperty("--mid-ry", "0deg");
+  immersiveStage.style.setProperty("--far-rx", "0deg");
+  immersiveStage.style.setProperty("--far-ry", "0deg");
 };
 
 const setClassicContentInert = (inert) => {

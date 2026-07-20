@@ -2419,10 +2419,16 @@ h3 {
 .immersive-stage {
   --near-x: 0px;
   --near-y: 0px;
+  --near-rx: 0deg;
+  --near-ry: 0deg;
   --mid-x: 0px;
   --mid-y: 0px;
+  --mid-rx: 0deg;
+  --mid-ry: 0deg;
   --far-x: 0px;
   --far-y: 0px;
+  --far-rx: 0deg;
+  --far-ry: 0deg;
   --story-progress: 0;
   --story-drift: -9vw;
   --story-turn: -4deg;
@@ -2435,7 +2441,7 @@ h3 {
   background:
     radial-gradient(circle at 50% 36%, rgba(255, 196, 204, 0.12), transparent 24rem),
     linear-gradient(180deg, #171015 0%, #080708 66%, #030303 100%);
-  perspective: 1450px;
+  perspective: 1080px;
   perspective-origin: 50% 46%;
   animation: immersiveEnter 820ms var(--ease-out-expo) both;
 }
@@ -2956,7 +2962,7 @@ body.immersive-intro-active .site-header {
 
 .immersive-scene {
   --scene-accent-rgb: 255, 135, 153;
-  opacity: var(--scene-opacity, 0);
+  opacity: 1;
   pointer-events: none;
   transform:
     translate3d(var(--scene-x, 0px), var(--scene-y, 0px), var(--scene-z, -360px))
@@ -3115,6 +3121,7 @@ body.immersive-intro-active .site-header {
 
 .photo-orbit {
   z-index: 10;
+  opacity: var(--scene-opacity, 0);
   pointer-events: none;
   transform-style: preserve-3d;
 }
@@ -3122,6 +3129,8 @@ body.immersive-intro-active .site-header {
 .orbit-photo {
   --shift-x: var(--mid-x);
   --shift-y: var(--mid-y);
+  --tilt-rx: var(--mid-rx);
+  --tilt-ry: var(--mid-ry);
   --photo-flight-x: 0px;
   --photo-flight-y: 0px;
   --photo-flight-z: 0px;
@@ -3129,28 +3138,33 @@ body.immersive-intro-active .site-header {
   --photo-flight-ry: 0deg;
   --photo-flight-rz: 0deg;
   --photo-flight-scale: 1;
+  --photo-layer: var(--order);
+  --photo-pass: 0;
+  --depth-opacity: 1;
   position: absolute;
+  z-index: var(--photo-layer);
   left: var(--x);
   top: var(--y);
   width: clamp(150px, var(--w), 570px);
   aspect-ratio: var(--ratio);
   margin: 0;
-  overflow: hidden;
-  background: #171216;
-  box-shadow: 0 20px 42px rgba(0, 0, 0, 0.4), 0 0 48px rgba(var(--scene-accent-rgb), 0.08);
+  overflow: visible;
+  background: transparent;
+  opacity: var(--depth-opacity);
   transform:
     translate3d(
       calc(var(--shift-x) + var(--photo-flight-x)),
       calc(var(--shift-y) + var(--scene-card-shift, 0px) + var(--photo-flight-y)),
       calc(var(--z) + var(--photo-flight-z))
     )
-    rotateX(var(--photo-flight-rx))
-    rotateY(var(--photo-flight-ry))
+    rotateX(calc(var(--photo-flight-rx) + var(--tilt-rx)))
+    rotateY(calc(var(--photo-flight-ry) + var(--tilt-ry)))
     rotateZ(calc(var(--rz) + var(--photo-flight-rz)))
     scale(var(--photo-flight-scale));
   transform-style: preserve-3d;
+  transform-origin: center;
   backface-visibility: hidden;
-  contain: layout paint;
+  contain: layout;
 }
 
 .immersive-scene.is-nearby .orbit-photo {
@@ -3163,10 +3177,36 @@ body.immersive-intro-active .site-header {
   z-index: 3;
   inset: 0;
   border: 1px solid rgba(255, 255, 255, 0.32);
+  box-shadow: inset 0 0 0 1px rgba(var(--scene-accent-rgb), 0.08);
+  transform: translateZ(16px);
   pointer-events: none;
 }
 
 .orbit-photo::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: #0c090b;
+  box-shadow: 12px 16px 32px rgba(0, 0, 0, 0.46);
+  transform: translate3d(8px, 8px, -22px);
+  pointer-events: none;
+}
+
+.orbit-photo-media {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  display: block;
+  overflow: hidden;
+  background: #171216;
+  box-shadow: 0 20px 42px rgba(0, 0, 0, 0.4), 0 0 48px rgba(var(--scene-accent-rgb), 0.08);
+  transform: translateZ(8px);
+  backface-visibility: hidden;
+  contain: paint;
+}
+
+.orbit-photo-media::after {
   content: "";
   position: absolute;
   z-index: 2;
@@ -3174,29 +3214,36 @@ body.immersive-intro-active .site-header {
   background: linear-gradient(112deg, transparent 34%, rgba(255, 255, 255, 0.22) 47%, transparent 59%);
   mix-blend-mode: screen;
   opacity: 0;
-  transform: translate3d(-58%, 0, 0) rotate(2deg);
+  transform: translate3d(-58%, 0, 12px) rotate(2deg);
   pointer-events: none;
 }
 
-.immersive-scene.is-current .orbit-photo::after {
+.immersive-scene.is-current .orbit-photo-media::after {
   animation: immersivePhotoSweep 5.6s var(--ease-out-quint) infinite;
   animation-delay: -720ms;
 }
 
-.immersive-scene.is-current .orbit-photo:nth-child(2)::after {
+.immersive-scene.is-current .orbit-photo:nth-child(2) .orbit-photo-media::after {
   animation-delay: -1440ms;
 }
 
 .orbit-photo.is-near {
   --shift-x: var(--near-x);
   --shift-y: var(--near-y);
+  --tilt-rx: var(--near-rx);
+  --tilt-ry: var(--near-ry);
+}
+
+.orbit-photo.is-near .orbit-photo-media {
   box-shadow: 0 30px 62px rgba(0, 0, 0, 0.5), 0 0 58px rgba(var(--scene-accent-rgb), 0.15);
 }
 
 .orbit-photo.is-far {
   --shift-x: var(--far-x);
   --shift-y: var(--far-y);
-  opacity: 0.74;
+  --tilt-rx: var(--far-rx);
+  --tilt-ry: var(--far-ry);
+  --depth-opacity: 0.74;
 }
 
 .orbit-photo img {
@@ -3234,6 +3281,8 @@ body.immersive-intro-active .site-header {
   font-size: 0.64rem;
   line-height: 1.35;
   text-shadow: 0 1px 12px #000;
+  transform: translateZ(22px);
+  backface-visibility: hidden;
 }
 
 .orbit-line {
@@ -4077,7 +4126,6 @@ body.immersive-active .mode-3d-toggle::after {
   .orbit-photo,
   .orbit-photo.is-near {
     backface-visibility: visible;
-    box-shadow: 0 16px 28px rgba(0, 0, 0, 0.38);
     contain: layout;
     transform:
       translate3d(
@@ -4087,6 +4135,21 @@ body.immersive-active .mode-3d-toggle::after {
       )
       rotateZ(calc(var(--rz) + var(--photo-flight-rz, 0deg)));
     transform-style: flat;
+  }
+
+  .orbit-photo-media,
+  .orbit-photo.is-near .orbit-photo-media {
+    box-shadow: 0 16px 28px rgba(0, 0, 0, 0.38);
+    transform: none;
+  }
+
+  .orbit-photo::before,
+  .orbit-photo figcaption {
+    transform: none;
+  }
+
+  .orbit-photo::after {
+    display: none;
   }
 
   .orbit-photo img,
@@ -4103,12 +4166,12 @@ body.immersive-active .mode-3d-toggle::after {
     will-change: auto;
   }
 
-  .immersive-scene.is-current .orbit-photo::after,
+  .immersive-scene.is-current .orbit-photo-media::after,
   .immersive-scene.is-current .orbit-line {
     animation: none;
   }
 
-  .orbit-photo::after {
+  .orbit-photo-media::after {
     background: linear-gradient(112deg, transparent 36%, rgba(255, 255, 255, 0.12) 48%, transparent 60%);
     mix-blend-mode: normal;
     opacity: 0;
@@ -4158,7 +4221,7 @@ body.immersive-active .mode-3d-toggle::after {
   .immersive-lightband,
   .immersive-depth-ring,
   .immersive-scene.is-current .orbit-photo img,
-  .immersive-scene.is-current .orbit-photo::after,
+  .immersive-scene.is-current .orbit-photo-media::after,
   .immersive-scene.is-current .orbit-line,
   .immersive-scroll-hint span::after {
     animation: none !important;
@@ -4184,9 +4247,19 @@ body.immersive-active .mode-3d-toggle::after {
     transform: translate(-50%, -50%) !important;
   }
 
-  .orbit-photo::after {
+  .orbit-photo-media::after {
     opacity: 0.16;
     transform: none;
+  }
+
+  .orbit-photo::before,
+  .orbit-photo-media,
+  .orbit-photo figcaption {
+    transform: none !important;
+  }
+
+  .orbit-photo::after {
+    display: none;
   }
 
   .orbit-photo {
