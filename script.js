@@ -171,6 +171,9 @@ const immersiveProgressFill = immersiveShell?.querySelector(".immersive-progress
 const immersiveCounterCurrent = immersiveShell?.querySelector(".immersive-counter-current");
 const immersiveCounterTotal = immersiveShell?.querySelector(".immersive-counter-total");
 const immersiveExit = immersiveShell?.querySelector(".immersive-exit");
+const heartIntro = immersiveShell?.querySelector(".heart-intro");
+const heartIntroCanvas = heartIntro?.querySelector(".heart-intro-canvas");
+const heartIntroContext = heartIntroCanvas?.getContext("2d", { alpha: true });
 const mode3dButton = document.querySelector(".mode-3d-toggle");
 const classicMain = document.querySelector("main");
 const classicFooter = document.querySelector(".footer");
@@ -192,6 +195,10 @@ let immersiveActiveScene = -1;
 let pointerFrame = 0;
 let pointerX = 0;
 let pointerY = 0;
+let heartIntroFrame = 0;
+let heartIntroRun = 0;
+let heartIntroResolve = null;
+let immersiveEntryToken = 0;
 
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 const isImmersiveActive = () => document.body.classList.contains("immersive-active");
@@ -374,17 +381,418 @@ const setClassicContentInert = (inert) => {
   if (classicFooter) classicFooter.inert = inert;
 };
 
-const enterImmersiveMode = async () => {
+const heartBoundaryPoint = (angle) => {
+  const sin = Math.sin(angle);
+  const rawY =
+    13 * Math.cos(angle) -
+    5 * Math.cos(2 * angle) -
+    2 * Math.cos(3 * angle) -
+    Math.cos(4 * angle);
+
+  return {
+    x: (16 * sin * sin * sin) / 17,
+    y: (-rawY / 17 - 0.35) * 1.35,
+  };
+};
+
+const createHeartMesh = () => {
+  const segments = 30;
+  const rings = 8;
+  const vertices = [];
+  const triangles = [];
+  const groups = Array.from({ length: 20 }, (_, index) => {
+    const sector = index % 10;
+    const band = Math.floor(index / 10);
+    const angle = (sector / 10) * Math.PI * 2 - Math.PI * 0.5;
+    const noise = Math.sin((index + 2) * 12.9898) * 0.5 + 0.5;
+    const distance = 1.1 + noise * 0.85 + band * 0.22;
+
+    return {
+      center: { x: 0, y: 0, z: 0 },
+      count: 0,
+      offset: {
+        x: Math.cos(angle) * distance,
+        y: Math.sin(angle) * distance * 0.88,
+        z: (Math.sin(index * 5.31) * 0.5 + 0.5) * 1.8 - 0.9,
+      },
+      rotation: {
+        x: (Math.sin(index * 2.17) * 0.5 + 0.5) * 1.9 - 0.95,
+        y: (Math.sin(index * 4.73) * 0.5 + 0.5) * 2.2 - 1.1,
+        z: (Math.sin(index * 7.11) * 0.5 + 0.5) * 2.4 - 1.2,
+      },
+    };
+  });
+
+  for (let ring = 0; ring <= rings; ring += 1) {
+    const radius = ring / rings;
+    for (let segment = 0; segment < segments; segment += 1) {
+      const boundary = heartBoundaryPoint((segment / segments) * Math.PI * 2);
+      const easedRadius = Math.pow(radius, 0.92);
+      vertices.push({
+        x: boundary.x * easedRadius,
+        y: boundary.y * easedRadius,
+        z: 0.46 * Math.pow(1 - radius, 0.62),
+      });
+    }
+  }
+
+  const addTriangle = (a, b, c, ring, side = false) => {
+    const center = {
+      x: (vertices[a].x + vertices[b].x + vertices[c].x) / 3,
+      y: (vertices[a].y + vertices[b].y + vertices[c].y) / 3,
+      z: (vertices[a].z + vertices[b].z + vertices[c].z) / 3,
+    };
+    const angle = Math.atan2(center.y, center.x) + Math.PI * 0.5;
+    const sector = ((Math.floor(((angle + Math.PI * 2) % (Math.PI * 2)) / (Math.PI * 2) * 10) % 10) + 10) % 10;
+    const group = sector + (ring / rings > 0.56 ? 10 : 0);
+    const groupData = groups[group];
+
+    groupData.center.x += center.x;
+    groupData.center.y += center.y;
+    groupData.center.z += center.z;
+    groupData.count += 1;
+    triangles.push({ a, b, c, group, side });
+  };
+
+  for (let ring = 1; ring <= rings; ring += 1) {
+    for (let segment = 0; segment < segments; segment += 1) {
+      const next = (segment + 1) % segments;
+      const previousRing = ring - 1;
+      const a = previousRing * segments + segment;
+      const b = ring * segments + segment;
+      const c = ring * segments + next;
+      const d = previousRing * segments + next;
+
+      addTriangle(a, b, c, ring);
+      if (ring > 1) addTriangle(a, c, d, ring);
+    }
+  }
+
+  const backStart = vertices.length;
+  for (let segment = 0; segment < segments; segment += 1) {
+    const boundary = heartBoundaryPoint((segment / segments) * Math.PI * 2);
+    vertices.push({ x: boundary.x, y: boundary.y, z: -0.24 });
+  }
+
+  for (let segment = 0; segment < segments; segment += 1) {
+    const next = (segment + 1) % segments;
+    const frontA = rings * segments + segment;
+    const frontB = rings * segments + next;
+    const backA = backStart + segment;
+    const backB = backStart + next;
+    addTriangle(frontA, backA, backB, rings, true);
+    addTriangle(frontA, backB, frontB, rings, true);
+  }
+
+  groups.forEach((group) => {
+    const count = Math.max(group.count, 1);
+    group.center.x /= count;
+    group.center.y /= count;
+    group.center.z /= count;
+  });
+
+  return { vertices, triangles, groups };
+};
+
+const heartMesh = createHeartMesh();
+
+const rotateHeartPoint = (point, rotationX, rotationY, rotationZ = 0) => {
+  const cosX = Math.cos(rotationX);
+  const sinX = Math.sin(rotationX);
+  const cosY = Math.cos(rotationY);
+  const sinY = Math.sin(rotationY);
+  const cosZ = Math.cos(rotationZ);
+  const sinZ = Math.sin(rotationZ);
+  const x1 = point.x * cosZ - point.y * sinZ;
+  const y1 = point.x * sinZ + point.y * cosZ;
+  const z1 = point.z;
+  const x2 = x1 * cosY + z1 * sinY;
+  const z2 = -x1 * sinY + z1 * cosY;
+
+  return {
+    x: x2,
+    y: y1 * cosX - z2 * sinX,
+    z: y1 * sinX + z2 * cosX,
+  };
+};
+
+const transformHeartVertex = (vertex, group, scattered, heartRotation) => {
+  const local = {
+    x: vertex.x - group.center.x,
+    y: vertex.y - group.center.y,
+    z: vertex.z - group.center.z,
+  };
+  const shardRotation = rotateHeartPoint(
+    local,
+    group.rotation.x * scattered,
+    group.rotation.y * scattered,
+    group.rotation.z * scattered
+  );
+  const assembled = {
+    x: shardRotation.x + group.center.x + group.offset.x * scattered,
+    y: shardRotation.y + group.center.y + group.offset.y * scattered,
+    z: shardRotation.z + group.center.z + group.offset.z * scattered,
+  };
+
+  return rotateHeartPoint(assembled, heartRotation.x, heartRotation.y, heartRotation.z);
+};
+
+const projectHeartPoint = (point, width, height, scale) => {
+  const camera = 5.2;
+  const perspective = camera / Math.max(3.5, camera - point.z);
+
+  return {
+    x: width * 0.5 + point.x * scale * perspective,
+    y: height * (width < 620 ? 0.43 : 0.48) + point.y * scale * perspective,
+    z: point.z,
+  };
+};
+
+const easeOutQuint = (value) => 1 - Math.pow(1 - clamp(value, 0, 1), 5);
+const smoothStep = (start, end, value) => {
+  const progress = clamp((value - start) / Math.max(end - start, 0.0001), 0, 1);
+  return progress * progress * (3 - 2 * progress);
+};
+
+const resizeHeartIntroCanvas = () => {
+  if (!heartIntroCanvas || !heartIntroContext) return null;
+
+  const width = Math.max(1, heartIntroCanvas.clientWidth);
+  const height = Math.max(1, heartIntroCanvas.clientHeight);
+  const dpr = Math.min(window.devicePixelRatio || 1, width < 620 ? 1.35 : 1.6);
+  const pixelWidth = Math.round(width * dpr);
+  const pixelHeight = Math.round(height * dpr);
+
+  if (heartIntroCanvas.width !== pixelWidth || heartIntroCanvas.height !== pixelHeight) {
+    heartIntroCanvas.width = pixelWidth;
+    heartIntroCanvas.height = pixelHeight;
+  }
+
+  heartIntroContext.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return { width, height };
+};
+
+const drawHeartCracks = (context, width, height, scale, rotation, assembly, healing) => {
+  if (assembly < 0.7 || healing >= 0.995) return;
+
+  const crackPaths = [
+    [[-0.02, -0.49], [0.06, -0.3], [-0.04, -0.14], [0.1, 0.02], [-0.035, 0.22], [0.02, 0.51]],
+    [[-0.035, -0.14], [-0.22, -0.02], [-0.34, 0.13]],
+    [[0.1, 0.02], [0.29, 0.11], [0.39, 0.25]],
+    [[-0.035, 0.22], [-0.19, 0.31], [-0.25, 0.43]],
+  ];
+  const remaining = 1 - healing;
+  const crackAlpha = smoothStep(0.7, 0.94, assembly) * remaining;
+
+  context.save();
+  context.lineCap = "round";
+  context.lineJoin = "round";
+  crackPaths.forEach((path, pathIndex) => {
+    const points = path.map(([x, y]) => {
+      const radius = clamp(Math.hypot(x, y) / 0.78, 0, 1);
+      const point = rotateHeartPoint({ x, y, z: 0.47 * Math.pow(1 - radius, 0.65) + 0.016 }, rotation.x, rotation.y, rotation.z);
+      return projectHeartPoint(point, width, height, scale);
+    });
+
+    context.beginPath();
+    points.forEach((point, index) => {
+      if (index === 0) context.moveTo(point.x, point.y);
+      else context.lineTo(point.x, point.y);
+    });
+    context.setLineDash([scale * 0.08, scale * 0.025]);
+    context.lineDashOffset = healing * scale * (0.42 + pathIndex * 0.06);
+    context.strokeStyle = `rgba(24, 0, 8, ${0.92 * crackAlpha})`;
+    context.lineWidth = Math.max(1, scale * (0.023 - healing * 0.013));
+    context.shadowColor = `rgba(255, 54, 91, ${0.9 * remaining})`;
+    context.shadowBlur = scale * 0.045 * remaining;
+    context.stroke();
+
+    context.setLineDash([]);
+    context.strokeStyle = `rgba(255, 94, 124, ${0.55 * crackAlpha})`;
+    context.lineWidth = Math.max(0.7, scale * 0.006);
+    context.shadowBlur = 0;
+    context.stroke();
+  });
+  context.restore();
+};
+
+const drawHeartSparkles = (context, width, height, scale, progress) => {
+  const visibility = Math.sin(clamp(progress, 0, 1) * Math.PI);
+  if (visibility <= 0.001) return;
+
+  context.save();
+  context.globalCompositeOperation = "screen";
+  for (let index = 0; index < 18; index += 1) {
+    const seed = index * 9.73;
+    const angle = seed * 0.71;
+    const distance = scale * (0.68 + (Math.sin(seed) * 0.5 + 0.5) * 0.62);
+    const travel = progress * scale * (0.08 + (index % 4) * 0.016);
+    const x = width * 0.5 + Math.cos(angle) * (distance + travel);
+    const y = height * (width < 620 ? 0.43 : 0.48) + Math.sin(angle) * (distance * 0.72 + travel);
+    const size = (2.2 + (index % 5) * 0.75) * visibility;
+    const alpha = visibility * (0.28 + (index % 3) * 0.2);
+
+    context.beginPath();
+    context.moveTo(x, y - size * 2.4);
+    context.lineTo(x + size * 0.42, y - size * 0.42);
+    context.lineTo(x + size * 2.4, y);
+    context.lineTo(x + size * 0.42, y + size * 0.42);
+    context.lineTo(x, y + size * 2.4);
+    context.lineTo(x - size * 0.42, y + size * 0.42);
+    context.lineTo(x - size * 2.4, y);
+    context.lineTo(x - size * 0.42, y - size * 0.42);
+    context.closePath();
+    context.fillStyle = `rgba(255, 238, 218, ${alpha})`;
+    context.shadowColor = "rgba(255, 116, 149, 0.9)";
+    context.shadowBlur = size * 3;
+    context.fill();
+  }
+  context.restore();
+};
+
+const renderHeartIntro = (progress) => {
+  if (!heartIntroContext) return;
+
+  const size = resizeHeartIntroCanvas();
+  if (!size) return;
+  const { width, height } = size;
+  const context = heartIntroContext;
+  const mobile = width < 620;
+  const scale = Math.min(width * (mobile ? 0.43 : 0.26), height * (mobile ? 0.3 : 0.32));
+  const assembly = reduceMotion ? 1 : easeOutQuint((progress - 0.08) / 0.5);
+  const healing = reduceMotion ? 1 : smoothStep(0.57, 0.78, progress);
+  const reveal = reduceMotion ? smoothStep(0.02, 0.2, progress) : smoothStep(0.1, 0.56, progress);
+  const finish = smoothStep(reduceMotion ? 0.68 : 0.88, 1, progress);
+  const scattered = Math.pow(1 - assembly, 1.12);
+  const rotation = {
+    x: -0.08 + assembly * 0.04 + Math.sin(progress * Math.PI * 2) * 0.018,
+    y: -0.42 + assembly * 0.54 + Math.sin(progress * Math.PI) * 0.05,
+    z: -0.035 + assembly * 0.035,
+  };
+
+  heartIntro?.style.setProperty("--heart-intro-reveal", reveal.toFixed(4));
+  heartIntro?.style.setProperty("--heart-intro-finish", finish.toFixed(4));
+  if (progress >= (reduceMotion ? 0.36 : 0.72)) heartIntro?.classList.add("is-healed");
+
+  context.clearRect(0, 0, width, height);
+  const drawable = heartMesh.triangles.map((triangle) => {
+    const group = heartMesh.groups[triangle.group];
+    const points3d = [triangle.a, triangle.b, triangle.c].map((index) =>
+      transformHeartVertex(heartMesh.vertices[index], group, scattered, rotation)
+    );
+    return {
+      ...triangle,
+      points3d,
+      points2d: points3d.map((point) => projectHeartPoint(point, width, height, scale)),
+      depth: points3d.reduce((sum, point) => sum + point.z, 0) / 3,
+    };
+  }).sort((a, b) => a.depth - b.depth);
+
+  context.save();
+  context.globalAlpha = smoothStep(0.015, 0.16, progress) * (1 - finish * 0.72);
+  drawable.forEach((triangle) => {
+    const [a3, b3, c3] = triangle.points3d;
+    const edge1 = { x: b3.x - a3.x, y: b3.y - a3.y, z: b3.z - a3.z };
+    const edge2 = { x: c3.x - a3.x, y: c3.y - a3.y, z: c3.z - a3.z };
+    const normal = {
+      x: edge1.y * edge2.z - edge1.z * edge2.y,
+      y: edge1.z * edge2.x - edge1.x * edge2.z,
+      z: edge1.x * edge2.y - edge1.y * edge2.x,
+    };
+    const normalLength = Math.max(0.0001, Math.hypot(normal.x, normal.y, normal.z));
+    const light = clamp((normal.x * -0.28 + normal.y * -0.42 + Math.abs(normal.z) * 0.92) / normalLength, 0, 1);
+    const facet = (triangle.group % 5) * 1.4;
+    const lightness = triangle.side ? 17 + light * 16 : 24 + light * 30 + facet + healing * 7;
+    const saturation = triangle.side ? 58 : 70 + healing * 8;
+    const [a, b, c] = triangle.points2d;
+
+    context.beginPath();
+    context.moveTo(a.x, a.y);
+    context.lineTo(b.x, b.y);
+    context.lineTo(c.x, c.y);
+    context.closePath();
+    context.fillStyle = `hsl(${344 + triangle.group * 0.32} ${saturation}% ${lightness}%)`;
+    context.fill();
+    context.strokeStyle = `rgba(255, 188, 203, ${triangle.side ? 0.025 : 0.055 + healing * 0.035})`;
+    context.lineWidth = 0.72;
+    context.stroke();
+  });
+  context.restore();
+
+  drawHeartCracks(context, width, height, scale, rotation, assembly, healing);
+  const sparkleProgress = smoothStep(reduceMotion ? 0.3 : 0.73, reduceMotion ? 0.82 : 0.94, progress);
+  drawHeartSparkles(context, width, height, scale, sparkleProgress);
+};
+
+const finishHeartIntro = (run) => {
+  if (run !== heartIntroRun) return;
+  cancelAnimationFrame(heartIntroFrame);
+  heartIntroFrame = 0;
+  heartIntro?.classList.remove("is-healed");
+  if (heartIntro) {
+    heartIntro.hidden = true;
+    heartIntro.setAttribute("aria-hidden", "true");
+    heartIntro.style.removeProperty("--heart-intro-reveal");
+    heartIntro.style.removeProperty("--heart-intro-finish");
+  }
+  document.body.classList.remove("immersive-intro-active");
+  const resolve = heartIntroResolve;
+  heartIntroResolve = null;
+  resolve?.();
+};
+
+const stopHeartIntro = () => {
+  heartIntroRun += 1;
+  cancelAnimationFrame(heartIntroFrame);
+  heartIntroFrame = 0;
+  heartIntro?.classList.remove("is-healed");
+  if (heartIntro) {
+    heartIntro.hidden = true;
+    heartIntro.setAttribute("aria-hidden", "true");
+    heartIntro.style.removeProperty("--heart-intro-reveal");
+    heartIntro.style.removeProperty("--heart-intro-finish");
+  }
+  document.body.classList.remove("immersive-intro-active");
+  const resolve = heartIntroResolve;
+  heartIntroResolve = null;
+  resolve?.();
+};
+
+const playHeartIntro = () => {
+  if (!heartIntro || !heartIntroCanvas || !heartIntroContext) return Promise.resolve();
+
+  stopHeartIntro();
+  const run = ++heartIntroRun;
+  const duration = reduceMotion ? 920 : 4700;
+  const start = performance.now();
+  heartIntro.hidden = false;
+  heartIntro.setAttribute("aria-hidden", "false");
+  heartIntro.classList.remove("is-healed");
+  document.body.classList.add("immersive-intro-active");
+
+  return new Promise((resolve) => {
+    heartIntroResolve = resolve;
+    const frame = (timestamp) => {
+      if (run !== heartIntroRun || !isImmersiveActive()) return;
+      const progress = clamp((timestamp - start) / duration, 0, 1);
+      renderHeartIntro(progress);
+      if (progress < 1) {
+        heartIntroFrame = requestAnimationFrame(frame);
+      } else {
+        finishHeartIntro(run);
+      }
+    };
+    renderHeartIntro(0);
+    heartIntroFrame = requestAnimationFrame(frame);
+  });
+};
+
+const enterImmersiveMode = () => {
   if (!immersiveShell || !mode3dButton || isImmersiveActive() || immersiveEntryPending) return;
 
+  const entryToken = ++immersiveEntryToken;
   immersiveEntryPending = true;
   mode3dButton.setAttribute("aria-busy", "true");
-  await warmImmersiveImages();
-  immersiveEntryPending = false;
-  mode3dButton.removeAttribute("aria-busy");
-
-  if (isImmersiveActive()) return;
-
   classicScrollY = window.scrollY;
   root.classList.add("immersive-scrolling");
   immersiveShell.hidden = false;
@@ -401,6 +809,14 @@ const enterImmersiveMode = async () => {
   immersiveActiveScene = -1;
   resetImmersivePointer();
 
+  const introPromise = playHeartIntro();
+  const warmupPromise = warmImmersiveImages();
+  Promise.allSettled([introPromise, warmupPromise]).then(() => {
+    if (entryToken !== immersiveEntryToken) return;
+    immersiveEntryPending = false;
+    mode3dButton.removeAttribute("aria-busy");
+  });
+
   requestAnimationFrame(() => {
     refreshImmersiveMetrics(true);
     window.scrollTo(0, 0);
@@ -412,7 +828,11 @@ const enterImmersiveMode = async () => {
 const exitImmersiveMode = () => {
   if (!immersiveShell || !mode3dButton || !isImmersiveActive()) return;
 
-  document.body.classList.remove("immersive-active");
+  immersiveEntryToken += 1;
+  immersiveEntryPending = false;
+  mode3dButton.removeAttribute("aria-busy");
+  stopHeartIntro();
+  document.body.classList.remove("immersive-active", "immersive-intro-active");
   cancelAnimationFrame(immersiveFrame);
   immersiveFrame = 0;
   setImmersiveExitReady(false);
