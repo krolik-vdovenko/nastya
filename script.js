@@ -167,6 +167,9 @@ const immersiveStage = immersiveShell?.querySelector(".immersive-stage");
 const immersiveScenes = immersiveShell
   ? Array.from(immersiveShell.querySelectorAll(".immersive-scene"))
   : [];
+const immersiveScenePhotos = immersiveScenes.map((scene) =>
+  Array.from(scene.querySelectorAll(".orbit-photo"))
+);
 const immersiveProgressFill = immersiveShell?.querySelector(".immersive-progress-fill");
 const immersiveCounterCurrent = immersiveShell?.querySelector(".immersive-counter-current");
 const immersiveCounterTotal = immersiveShell?.querySelector(".immersive-counter-total");
@@ -224,6 +227,214 @@ const setInlineProperty = (element, property, value) => {
   if (element.style.getPropertyValue(property) !== value) {
     element.style.setProperty(property, value);
   }
+};
+
+const flightVector = (x, y, z, rotateX, rotateY, rotateZ, scale = 0) => ({
+  x,
+  y,
+  z,
+  rotateX,
+  rotateY,
+  rotateZ,
+  scale,
+});
+
+// Each chapter has its own camera path. The values are viewport-relative so
+// reversing the scroll retraces the exact same route without class-driven jumps.
+const immersiveFlightProfiles = [
+  {
+    enter: {
+      scene: flightVector(0, 0.08, -300, -5, 0, -1, -0.07),
+      photos: [
+        flightVector(-0.36, 0.08, -220, 2, 18, -12, -0.1),
+        flightVector(0.32, -0.07, 180, -2, -16, 8, 0.05),
+      ],
+      cardShift: 18,
+    },
+    exit: {
+      scene: flightVector(0, -0.1, 220, 5, 0, 1, 0.05),
+      photos: [
+        flightVector(0.22, -0.11, 240, -2, -13, 7, 0.07),
+        flightVector(-0.27, 0.12, -190, 2, 15, -7, -0.08),
+      ],
+      cardShift: -14,
+    },
+  },
+  {
+    enter: {
+      scene: flightVector(0.07, 0.02, -320, -2, -4, 1, -0.06),
+      photos: [
+        flightVector(-0.42, 0.02, 160, 0, 20, -7, 0.08),
+        flightVector(0.4, -0.05, -130, 0, -18, 8, -0.06),
+      ],
+      cardShift: -10,
+    },
+    exit: {
+      scene: flightVector(-0.08, -0.03, 210, 2, 4, -1, 0.04),
+      photos: [
+        flightVector(0.34, -0.07, -170, 0, -16, 7, -0.06),
+        flightVector(-0.36, 0.09, 150, 0, 18, -8, 0.07),
+      ],
+      cardShift: 12,
+    },
+  },
+  {
+    enter: {
+      scene: flightVector(-0.04, 0.08, -280, -4, 3, -2, -0.07),
+      photos: [
+        flightVector(0.18, -0.32, 210, -10, -12, -14, 0.1),
+        flightVector(-0.28, 0.36, -190, 8, 16, 18, -0.09),
+      ],
+      cardShift: 8,
+    },
+    exit: {
+      scene: flightVector(0.05, -0.08, 230, 4, -3, 2, 0.05),
+      photos: [
+        flightVector(-0.32, 0.28, -180, 10, 12, 12, -0.08),
+        flightVector(0.34, -0.27, 190, -8, -15, -16, 0.08),
+      ],
+      cardShift: -8,
+    },
+  },
+  {
+    enter: {
+      scene: flightVector(0.05, -0.02, -300, 2, -4, 2, -0.06),
+      photos: [
+        flightVector(0.34, 0.18, -130, 2, -22, 14, -0.05),
+        flightVector(-0.36, -0.14, 200, -2, 20, -16, 0.08),
+      ],
+      cardShift: 6,
+    },
+    exit: {
+      scene: flightVector(-0.05, 0.03, 220, -2, 4, -2, 0.04),
+      photos: [
+        flightVector(-0.3, -0.18, 210, -2, 18, -12, 0.08),
+        flightVector(0.28, 0.22, -170, 2, -18, 14, -0.07),
+      ],
+      cardShift: -6,
+    },
+  },
+  {
+    enter: {
+      scene: flightVector(0, 0.06, -340, -5, 0, 0, -0.08),
+      photos: [
+        flightVector(0, 0.24, 330, 10, 0, -3, 0.13),
+        flightVector(0.39, -0.18, -230, -4, -18, 12, -0.1),
+      ],
+      cardShift: 0,
+    },
+    exit: {
+      scene: flightVector(0, -0.07, 260, 4, 0, 0, 0.06),
+      photos: [
+        flightVector(0, -0.19, 360, -8, 0, 3, 0.16),
+        flightVector(-0.42, 0.2, -250, 4, 18, -12, -0.1),
+      ],
+      cardShift: 0,
+    },
+  },
+  {
+    enter: {
+      scene: flightVector(0.1, 0.01, -280, 0, -5, 1, -0.06),
+      photos: [
+        flightVector(0.45, 0.02, 170, 0, -13, 5, 0.05),
+        flightVector(0.54, 0.14, -190, 0, -18, 10, -0.08),
+      ],
+      cardShift: -4,
+    },
+    exit: {
+      scene: flightVector(-0.11, -0.01, 220, 0, 5, -1, 0.04),
+      photos: [
+        flightVector(-0.42, -0.03, 170, 0, 13, -5, 0.05),
+        flightVector(-0.5, -0.12, -170, 0, 18, -10, -0.07),
+      ],
+      cardShift: 4,
+    },
+  },
+  {
+    enter: {
+      scene: flightVector(-0.03, 0.06, -300, -3, 3, -2, -0.07),
+      photos: [
+        flightVector(-0.3, 0.3, 190, 8, 18, -18, 0.08),
+        flightVector(0.34, -0.24, -130, -7, -20, 20, -0.07),
+      ],
+      cardShift: 10,
+    },
+    exit: {
+      scene: flightVector(0.04, -0.06, 230, 3, -3, 2, 0.05),
+      photos: [
+        flightVector(0.38, -0.24, -110, -8, -16, 16, -0.06),
+        flightVector(-0.36, 0.3, 170, 7, 18, -18, 0.08),
+      ],
+      cardShift: -10,
+    },
+  },
+  {
+    enter: {
+      scene: flightVector(0, 0.04, -320, -3, 0, 0, -0.07),
+      photos: [
+        flightVector(-0.38, 0.08, -230, 0, 16, -10, -0.09),
+        flightVector(0.36, -0.06, 230, 0, -16, 10, 0.09),
+      ],
+      cardShift: 0,
+    },
+    exit: {
+      scene: flightVector(0, -0.03, 160, 2, 0, 0, 0.03),
+      photos: [
+        flightVector(-0.2, -0.06, -120, 0, 10, -5, -0.04),
+        flightVector(0.2, 0.06, 120, 0, -10, 5, 0.04),
+      ],
+      cardShift: 0,
+    },
+  },
+];
+
+const applyImmersiveFlight = (scene, sceneIndex, distance, stageHeight, flatMode) => {
+  const profile = immersiveFlightProfiles[sceneIndex % immersiveFlightProfiles.length];
+  const route = distance >= 0 ? profile.enter : profile.exit;
+  const travel = Math.pow(clamp(Math.abs(distance), 0, 1), 0.86);
+  const viewportWidth = Math.max(320, immersiveMetricWidth || window.innerWidth);
+  const horizontalScale = viewportWidth * (flatMode ? 0.34 : 1);
+  const verticalScale = stageHeight * (flatMode ? 0.34 : 1);
+  const rotationScale = flatMode ? 0.28 : 1;
+  const sceneVector = route.scene;
+
+  setInlineProperty(scene, "--scene-x", `${(sceneVector.x * horizontalScale * travel).toFixed(2)}px`);
+  setInlineProperty(scene, "--scene-y", `${(sceneVector.y * verticalScale * travel).toFixed(2)}px`);
+  setInlineProperty(scene, "--scene-z", `${(flatMode ? 0 : sceneVector.z * travel).toFixed(2)}px`);
+  setInlineProperty(scene, "--scene-rotate-x", `${(flatMode ? 0 : sceneVector.rotateX * travel).toFixed(3)}deg`);
+  setInlineProperty(scene, "--scene-rotate-y", `${(flatMode ? 0 : sceneVector.rotateY * travel).toFixed(3)}deg`);
+  setInlineProperty(scene, "--scene-rotate-z", `${(sceneVector.rotateZ * rotationScale * travel).toFixed(3)}deg`);
+  setInlineProperty(
+    scene,
+    "--scene-scale",
+    (flatMode ? 1 : clamp(1 + sceneVector.scale * travel, 0.88, 1.1)).toFixed(4)
+  );
+  setInlineProperty(
+    scene,
+    "--scene-card-shift",
+    `${(reduceMotion ? 0 : route.cardShift * travel * (flatMode ? 0.45 : 1)).toFixed(2)}px`
+  );
+
+  immersiveScenePhotos[sceneIndex]?.forEach((photo, photoIndex) => {
+    const vector = route.photos[photoIndex] || route.photos[route.photos.length - 1];
+    const mobilePhotoScale = flatMode ? 0.46 : 1;
+
+    setInlineProperty(photo, "--photo-flight-x", `${(vector.x * horizontalScale * travel).toFixed(2)}px`);
+    setInlineProperty(photo, "--photo-flight-y", `${(vector.y * verticalScale * travel).toFixed(2)}px`);
+    setInlineProperty(photo, "--photo-flight-z", `${(flatMode ? 0 : vector.z * travel).toFixed(2)}px`);
+    setInlineProperty(photo, "--photo-flight-rx", `${(flatMode ? 0 : vector.rotateX * travel).toFixed(3)}deg`);
+    setInlineProperty(photo, "--photo-flight-ry", `${(flatMode ? 0 : vector.rotateY * travel).toFixed(3)}deg`);
+    setInlineProperty(
+      photo,
+      "--photo-flight-rz",
+      `${(vector.rotateZ * rotationScale * mobilePhotoScale * travel).toFixed(3)}deg`
+    );
+    setInlineProperty(
+      photo,
+      "--photo-flight-scale",
+      (flatMode ? 1 : clamp(1 + vector.scale * travel, 0.84, 1.16)).toFixed(4)
+    );
+  });
 };
 
 immersiveScenes.forEach((scene, index) => {
@@ -318,25 +529,22 @@ const renderImmersiveProgress = (progress, stageHeight) => {
     const distance = index - scenePosition;
     const absoluteDistance = Math.abs(distance);
     const isNearby = absoluteDistance < 1.08;
-    const sceneFadeRange = 0.94;
+    const sceneFadeRange = 0.98;
     const opacity = absoluteDistance >= sceneFadeRange
       ? 0
       : Math.pow(Math.cos((absoluteDistance / sceneFadeRange) * Math.PI * 0.5), 0.82);
     const presence = clamp(1 - absoluteDistance / sceneFadeRange, 0, 1);
-    const scale = clamp(1 - absoluteDistance * 0.048, 0.92, 1);
+    const copyWindow = clamp((presence - 0.48) / 0.52, 0, 1);
+    const copyPresence = copyWindow * copyWindow * (3 - 2 * copyWindow);
+    const whisperPresence = Math.pow(presence, 2.2);
 
     setInlineProperty(scene, "--scene-opacity", opacity.toFixed(4));
     setInlineProperty(scene, "--scene-presence", presence.toFixed(4));
+    setInlineProperty(scene, "--scene-copy-opacity", copyPresence.toFixed(4));
+    setInlineProperty(scene, "--scene-whisper-opacity", whisperPresence.toFixed(4));
 
     if (isNearby) {
-      setInlineProperty(scene, "--scene-y", `${(distance * stageHeight * 0.22).toFixed(2)}px`);
-      setInlineProperty(scene, "--scene-card-shift", `${(-distance * 46).toFixed(2)}px`);
-
-      if (!flatMode) {
-        setInlineProperty(scene, "--scene-z", `${(-absoluteDistance * 290).toFixed(2)}px`);
-        setInlineProperty(scene, "--scene-rotate-x", `${(-distance * 3.2).toFixed(3)}deg`);
-        setInlineProperty(scene, "--scene-scale", scale.toFixed(4));
-      }
+      applyImmersiveFlight(scene, index, reduceMotion ? 0 : distance, stageHeight, flatMode);
     }
 
     if (activeSceneChanged) {

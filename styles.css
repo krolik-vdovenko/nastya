@@ -2791,8 +2791,10 @@ body.immersive-intro-active .immersive-exit {
   opacity: var(--scene-opacity, 0);
   pointer-events: none;
   transform:
-    translate3d(0, var(--scene-y, 0vh), var(--scene-z, -360px))
+    translate3d(var(--scene-x, 0px), var(--scene-y, 0px), var(--scene-z, -360px))
     rotateX(var(--scene-rotate-x, 0deg))
+    rotateY(var(--scene-rotate-y, 0deg))
+    rotateZ(var(--scene-rotate-z, 0deg))
     scale(var(--scene-scale, 0.96));
   transform-style: preserve-3d;
   backface-visibility: hidden;
@@ -2851,7 +2853,7 @@ body.immersive-intro-active .immersive-exit {
   line-height: 0.8;
   white-space: nowrap;
   -webkit-text-stroke: 1px rgba(var(--scene-accent-rgb), 0.1);
-  opacity: var(--scene-presence, 0);
+  opacity: var(--scene-whisper-opacity, 0);
   transform: translate3d(-50%, -50%, -180px);
   transform-origin: center;
   pointer-events: none;
@@ -2869,6 +2871,7 @@ body.immersive-intro-active .immersive-exit {
   position: absolute;
   z-index: 60;
   width: min(620px, calc(100% - 48px));
+  opacity: var(--scene-copy-opacity, 0);
   pointer-events: none;
   text-shadow: 0 2px 24px rgba(0, 0, 0, 0.78);
 }
@@ -2951,6 +2954,13 @@ body.immersive-intro-active .immersive-exit {
 .orbit-photo {
   --shift-x: var(--mid-x);
   --shift-y: var(--mid-y);
+  --photo-flight-x: 0px;
+  --photo-flight-y: 0px;
+  --photo-flight-z: 0px;
+  --photo-flight-rx: 0deg;
+  --photo-flight-ry: 0deg;
+  --photo-flight-rz: 0deg;
+  --photo-flight-scale: 1;
   position: absolute;
   left: var(--x);
   top: var(--y);
@@ -2961,8 +2971,15 @@ body.immersive-intro-active .immersive-exit {
   background: #171216;
   box-shadow: 0 20px 42px rgba(0, 0, 0, 0.4), 0 0 48px rgba(var(--scene-accent-rgb), 0.08);
   transform:
-    translate3d(var(--shift-x), calc(var(--shift-y) + var(--scene-card-shift, 0px)), var(--z))
-    rotateZ(var(--rz));
+    translate3d(
+      calc(var(--shift-x) + var(--photo-flight-x)),
+      calc(var(--shift-y) + var(--scene-card-shift, 0px) + var(--photo-flight-y)),
+      calc(var(--z) + var(--photo-flight-z))
+    )
+    rotateX(var(--photo-flight-rx))
+    rotateY(var(--photo-flight-ry))
+    rotateZ(calc(var(--rz) + var(--photo-flight-rz)))
+    scale(var(--photo-flight-scale));
   transform-style: preserve-3d;
   backface-visibility: hidden;
   contain: layout paint;
@@ -3617,7 +3634,9 @@ body.immersive-active .mode-3d-toggle::after {
   .immersive-scene {
     backface-visibility: visible;
     contain: layout paint;
-    transform: translate3d(0, var(--scene-y, 0vh), 0);
+    transform:
+      translate3d(var(--scene-x, 0px), var(--scene-y, 0px), 0)
+      rotateZ(var(--scene-rotate-z, 0deg));
     transform-style: flat;
   }
 
@@ -3640,7 +3659,13 @@ body.immersive-active .mode-3d-toggle::after {
     backface-visibility: visible;
     box-shadow: 0 16px 28px rgba(0, 0, 0, 0.38);
     contain: layout;
-    transform: translate3d(0, var(--scene-card-shift, 0px), 0) rotateZ(var(--rz));
+    transform:
+      translate3d(
+        var(--photo-flight-x, 0px),
+        calc(var(--scene-card-shift, 0px) + var(--photo-flight-y, 0px)),
+        0
+      )
+      rotateZ(calc(var(--rz) + var(--photo-flight-rz, 0deg)));
     transform-style: flat;
   }
 
@@ -3728,7 +3753,7 @@ body.immersive-active .mode-3d-toggle::after {
   }
 
   .orbit-photo {
-    transform: translate3d(0, var(--scene-card-shift, 0px), 0) rotateZ(var(--rz)) !important;
+    transform: translate3d(0, 0, 0) rotateZ(var(--rz)) !important;
   }
 }
 
