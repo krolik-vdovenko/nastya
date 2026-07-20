@@ -390,36 +390,50 @@ const heartBoundaryPoint = (angle) => {
     Math.cos(4 * angle);
 
   return {
-    x: (16 * sin * sin * sin) / 17,
-    y: (-rawY / 17 - 0.35) * 1.35,
+    x: (16 * sin * sin * sin) / 16.6,
+    y: (-rawY / 17 - 0.35) * 1.08,
   };
 };
 
-const createHeartMesh = () => {
-  const segments = 30;
-  const rings = 8;
+const heartFragmentSeeds = [
+  [-0.58, -0.5], [-0.22, -0.54], [0.2, -0.55], [0.57, -0.46],
+  [-0.72, -0.16], [-0.34, -0.2], [0.02, -0.19], [0.38, -0.14], [0.72, -0.05],
+  [-0.58, 0.18], [-0.2, 0.12], [0.22, 0.16], [0.55, 0.26],
+  [-0.36, 0.45], [0.02, 0.42], [0.3, 0.51], [0, 0.7],
+];
+
+const createHeartMesh = (segments, rings) => {
   const vertices = [];
   const triangles = [];
-  const groups = Array.from({ length: 20 }, (_, index) => {
-    const sector = index % 10;
-    const band = Math.floor(index / 10);
-    const angle = (sector / 10) * Math.PI * 2 - Math.PI * 0.5;
+  const groups = heartFragmentSeeds.map(([seedX, seedY], index) => {
+    const seedAngle = Math.atan2(seedY, seedX || 0.001);
     const noise = Math.sin((index + 2) * 12.9898) * 0.5 + 0.5;
-    const distance = 1.1 + noise * 0.85 + band * 0.22;
+    const distance = 1.02 + noise * 0.78;
+    const directionX = Math.cos(seedAngle + Math.sin(index * 1.37) * 0.16);
+    const directionY = Math.sin(seedAngle + Math.sin(index * 1.37) * 0.16);
 
     return {
+      index,
+      seed: { x: seedX, y: seedY },
       center: { x: 0, y: 0, z: 0 },
       count: 0,
       offset: {
-        x: Math.cos(angle) * distance,
-        y: Math.sin(angle) * distance * 0.88,
-        z: (Math.sin(index * 5.31) * 0.5 + 0.5) * 1.8 - 0.9,
+        x: directionX * distance + Math.sin(index * 3.11) * 0.16,
+        y: directionY * distance * 0.9 + (index === 16 ? 0.62 : 0),
+        z: (Math.sin(index * 5.31) * 0.5 + 0.5) * 1.42 - 0.62,
       },
       rotation: {
-        x: (Math.sin(index * 2.17) * 0.5 + 0.5) * 1.9 - 0.95,
-        y: (Math.sin(index * 4.73) * 0.5 + 0.5) * 2.2 - 1.1,
-        z: (Math.sin(index * 7.11) * 0.5 + 0.5) * 2.4 - 1.2,
+        x: (Math.sin(index * 2.17) * 0.5 + 0.5) * 1.45 - 0.725,
+        y: (Math.sin(index * 4.73) * 0.5 + 0.5) * 1.7 - 0.85,
+        z: (Math.sin(index * 7.11) * 0.5 + 0.5) * 1.9 - 0.95,
       },
+      fractureOffset: {
+        x: directionX * (0.032 + noise * 0.022),
+        y: directionY * (0.028 + noise * 0.018),
+        z: (Math.sin(index * 2.91) * 0.5 + 0.5) * 0.075,
+      },
+      arrival: ((index * 7) % heartFragmentSeeds.length) / heartFragmentSeeds.length,
+      tone: Math.sin(index * 8.17) * 0.5 + 0.5,
     };
   });
 
@@ -427,14 +441,40 @@ const createHeartMesh = () => {
     const radius = ring / rings;
     for (let segment = 0; segment < segments; segment += 1) {
       const boundary = heartBoundaryPoint((segment / segments) * Math.PI * 2);
-      const easedRadius = Math.pow(radius, 0.92);
+      const easedRadius = Math.pow(radius, 0.9);
+      const x = boundary.x * easedRadius;
+      const y = boundary.y * easedRadius;
+      const leftLobe = Math.exp(-((x + 0.43) ** 2 / 0.19 + (y + 0.34) ** 2 / 0.17));
+      const rightLobe = Math.exp(-((x - 0.43) ** 2 / 0.19 + (y + 0.34) ** 2 / 0.17));
+      const body = Math.exp(-(x * x / 0.7 + (y - 0.06) ** 2 / 0.72));
+      const notch = Math.exp(-(x * x / 0.035 + (y + 0.57) ** 2 / 0.07));
       vertices.push({
-        x: boundary.x * easedRadius,
-        y: boundary.y * easedRadius,
-        z: 0.46 * Math.pow(1 - radius, 0.62),
+        x,
+        y,
+        z:
+          0.055 +
+          0.29 * Math.pow(1 - radius, 0.72) +
+          0.22 * (leftLobe + rightLobe) +
+          0.08 * body -
+          0.11 * notch,
       });
     }
   }
+
+  const findGroup = (center) => {
+    let selected = 0;
+    let selectedDistance = Infinity;
+    groups.forEach((group, index) => {
+      const dx = center.x - group.seed.x;
+      const dy = center.y - group.seed.y;
+      const distance = dx * dx + dy * dy * 1.08;
+      if (distance < selectedDistance) {
+        selectedDistance = distance;
+        selected = index;
+      }
+    });
+    return selected;
+  };
 
   const addTriangle = (a, b, c, ring, side = false) => {
     const center = {
@@ -442,9 +482,7 @@ const createHeartMesh = () => {
       y: (vertices[a].y + vertices[b].y + vertices[c].y) / 3,
       z: (vertices[a].z + vertices[b].z + vertices[c].z) / 3,
     };
-    const angle = Math.atan2(center.y, center.x) + Math.PI * 0.5;
-    const sector = ((Math.floor(((angle + Math.PI * 2) % (Math.PI * 2)) / (Math.PI * 2) * 10) % 10) + 10) % 10;
-    const group = sector + (ring / rings > 0.56 ? 10 : 0);
+    const group = findGroup(center);
     const groupData = groups[group];
 
     groupData.center.x += center.x;
@@ -471,7 +509,7 @@ const createHeartMesh = () => {
   const backStart = vertices.length;
   for (let segment = 0; segment < segments; segment += 1) {
     const boundary = heartBoundaryPoint((segment / segments) * Math.PI * 2);
-    vertices.push({ x: boundary.x, y: boundary.y, z: -0.24 });
+    vertices.push({ x: boundary.x, y: boundary.y, z: -0.3 });
   }
 
   for (let segment = 0; segment < segments; segment += 1) {
@@ -491,10 +529,33 @@ const createHeartMesh = () => {
     group.center.z /= count;
   });
 
-  return { vertices, triangles, groups };
+  const edgeMap = new Map();
+  triangles.forEach((triangle) => {
+    if (triangle.side) return;
+    [[triangle.a, triangle.b], [triangle.b, triangle.c], [triangle.c, triangle.a]].forEach(([a, b]) => {
+      const key = a < b ? `${a}:${b}` : `${b}:${a}`;
+      if (!edgeMap.has(key)) edgeMap.set(key, []);
+      edgeMap.get(key).push({ a, b, group: triangle.group });
+    });
+  });
+
+  const crackEdges = [];
+  edgeMap.forEach((entries) => {
+    if (entries.length !== 2 || entries[0].group === entries[1].group) return;
+    crackEdges.push({
+      a: entries[0].a,
+      b: entries[0].b,
+      groups: [entries[0].group, entries[1].group],
+    });
+  });
+
+  return { vertices, triangles, groups, crackEdges };
 };
 
-const heartMesh = createHeartMesh();
+const heartMeshes = {
+  desktop: createHeartMesh(36, 5),
+  mobile: createHeartMesh(28, 3),
+};
 
 const rotateHeartPoint = (point, rotationX, rotationY, rotationZ = 0) => {
   const cosX = Math.cos(rotationX);
@@ -516,7 +577,7 @@ const rotateHeartPoint = (point, rotationX, rotationY, rotationZ = 0) => {
   };
 };
 
-const transformHeartVertex = (vertex, group, scattered, heartRotation) => {
+const transformHeartVertex = (vertex, group, motion, heartRotation) => {
   const local = {
     x: vertex.x - group.center.x,
     y: vertex.y - group.center.y,
@@ -524,14 +585,26 @@ const transformHeartVertex = (vertex, group, scattered, heartRotation) => {
   };
   const shardRotation = rotateHeartPoint(
     local,
-    group.rotation.x * scattered,
-    group.rotation.y * scattered,
-    group.rotation.z * scattered
+    group.rotation.x * motion.scattered,
+    group.rotation.y * motion.scattered,
+    group.rotation.z * motion.scattered
   );
   const assembled = {
-    x: shardRotation.x + group.center.x + group.offset.x * scattered,
-    y: shardRotation.y + group.center.y + group.offset.y * scattered,
-    z: shardRotation.z + group.center.z + group.offset.z * scattered,
+    x:
+      shardRotation.x +
+      group.center.x +
+      group.offset.x * motion.scattered +
+      group.fractureOffset.x * motion.fracture,
+    y:
+      shardRotation.y +
+      group.center.y +
+      group.offset.y * motion.scattered +
+      group.fractureOffset.y * motion.fracture,
+    z:
+      shardRotation.z +
+      group.center.z +
+      group.offset.z * motion.scattered +
+      group.fractureOffset.z * motion.fracture,
   };
 
   return rotateHeartPoint(assembled, heartRotation.x, heartRotation.y, heartRotation.z);
@@ -543,7 +616,7 @@ const projectHeartPoint = (point, width, height, scale) => {
 
   return {
     x: width * 0.5 + point.x * scale * perspective,
-    y: height * (width < 620 ? 0.43 : 0.48) + point.y * scale * perspective,
+    y: height * (width < 620 ? 0.43 : 0.46) + point.y * scale * perspective,
     z: point.z,
   };
 };
@@ -572,47 +645,220 @@ const resizeHeartIntroCanvas = () => {
   return { width, height };
 };
 
-const drawHeartCracks = (context, width, height, scale, rotation, assembly, healing) => {
-  if (assembly < 0.7 || healing >= 0.995) return;
+const drawHeartCracks = (context, mesh, motions, width, height, scale, rotation, assembly, healing) => {
+  if (assembly < 0.66 || healing >= 0.998) return;
 
+  const visibility = smoothStep(0.66, 0.86, assembly) * (1 - healing);
+  const cavityWidth = Math.max(1.1, scale * (0.024 - healing * 0.019));
+  const rimWidth = Math.max(0.55, scale * (0.0055 - healing * 0.0038));
   const crackPaths = [
-    [[-0.02, -0.49], [0.06, -0.3], [-0.04, -0.14], [0.1, 0.02], [-0.035, 0.22], [0.02, 0.51]],
-    [[-0.035, -0.14], [-0.22, -0.02], [-0.34, 0.13]],
-    [[0.1, 0.02], [0.29, 0.11], [0.39, 0.25]],
-    [[-0.035, 0.22], [-0.19, 0.31], [-0.25, 0.43]],
+    [[0, -0.58], [0.035, -0.37], [-0.06, -0.17], [0.075, 0.01], [-0.035, 0.25], [0.02, 0.64]],
+    [[-0.5, -0.55], [-0.37, -0.31], [-0.23, -0.18], [-0.06, -0.17]],
+    [[0.5, -0.55], [0.38, -0.32], [0.27, -0.17], [0.075, 0.01]],
+    [[-0.23, -0.18], [-0.43, -0.07], [-0.58, 0.11]],
+    [[0.075, 0.01], [0.31, 0.09], [0.52, 0.24]],
+    [[-0.035, 0.25], [-0.24, 0.36], [-0.34, 0.5]],
+    [[-0.035, 0.25], [0.2, 0.34], [0.32, 0.47]],
   ];
-  const remaining = 1 - healing;
-  const crackAlpha = smoothStep(0.7, 0.94, assembly) * remaining;
+  const projectCrackPoint = ([x, y]) => {
+    const radius = clamp(Math.hypot(x / 0.94, y / 0.73), 0, 1);
+    const z = 0.08 + 0.47 * Math.pow(1 - radius, 0.7);
+    return projectHeartPoint(rotateHeartPoint({ x, y, z }, rotation.x, rotation.y, rotation.z), width, height, scale);
+  };
 
   context.save();
   context.lineCap = "round";
   context.lineJoin = "round";
-  crackPaths.forEach((path, pathIndex) => {
-    const points = path.map(([x, y]) => {
-      const radius = clamp(Math.hypot(x, y) / 0.78, 0, 1);
-      const point = rotateHeartPoint({ x, y, z: 0.47 * Math.pow(1 - radius, 0.65) + 0.016 }, rotation.x, rotation.y, rotation.z);
-      return projectHeartPoint(point, width, height, scale);
-    });
+  const cavityPoints = [
+    [-0.095, -0.085], [0.005, -0.145], [0.105, -0.055], [0.09, 0.07], [0.005, 0.13], [-0.105, 0.06],
+  ].map(projectCrackPoint);
+  context.beginPath();
+  cavityPoints.forEach((point, index) => {
+    if (index === 0) context.moveTo(point.x, point.y);
+    else context.lineTo(point.x, point.y);
+  });
+  context.closePath();
+  context.fillStyle = `rgba(12, 0, 5, ${0.94 * visibility})`;
+  context.shadowColor = `rgba(0, 0, 0, ${0.9 * visibility})`;
+  context.shadowBlur = scale * 0.075 * visibility;
+  context.fill();
+  context.strokeStyle = `rgba(171, 0, 39, ${0.72 * visibility})`;
+  context.lineWidth = Math.max(1, scale * 0.012 * visibility);
+  context.stroke();
 
+  crackPaths.forEach((path, pathIndex) => {
+    const points = path.map(projectCrackPoint);
     context.beginPath();
     points.forEach((point, index) => {
       if (index === 0) context.moveTo(point.x, point.y);
       else context.lineTo(point.x, point.y);
     });
-    context.setLineDash([scale * 0.08, scale * 0.025]);
-    context.lineDashOffset = healing * scale * (0.42 + pathIndex * 0.06);
-    context.strokeStyle = `rgba(24, 0, 8, ${0.92 * crackAlpha})`;
-    context.lineWidth = Math.max(1, scale * (0.023 - healing * 0.013));
-    context.shadowColor = `rgba(255, 54, 91, ${0.9 * remaining})`;
-    context.shadowBlur = scale * 0.045 * remaining;
+    context.strokeStyle = `rgba(12, 0, 5, ${0.94 * visibility})`;
+    context.lineWidth = cavityWidth * (pathIndex === 0 ? 1.18 : 0.9);
+    context.shadowColor = `rgba(0, 0, 0, ${0.86 * visibility})`;
+    context.shadowBlur = cavityWidth * 1.25;
     context.stroke();
 
-    context.setLineDash([]);
-    context.strokeStyle = `rgba(255, 94, 124, ${0.55 * crackAlpha})`;
-    context.lineWidth = Math.max(0.7, scale * 0.006);
     context.shadowBlur = 0;
+    context.strokeStyle = `rgba(132, 0, 31, ${0.9 * visibility})`;
+    context.lineWidth = cavityWidth * 0.34;
     context.stroke();
+
+    if (pathIndex % 2 === 0) {
+      context.strokeStyle = `rgba(255, 201, 211, ${0.36 * visibility})`;
+      context.lineWidth = rimWidth;
+      context.stroke();
+    }
   });
+
+  if (healing > 0.08) {
+    const repairGlow = Math.sin(clamp(healing, 0, 1) * Math.PI) * smoothStep(0.68, 0.94, assembly);
+    crackPaths.forEach((path, pathIndex) => {
+      if (pathIndex % 2 !== 0) return;
+      const points = path.map(projectCrackPoint);
+      context.beginPath();
+      points.forEach((point, index) => {
+        if (index === 0) context.moveTo(point.x, point.y);
+        else context.lineTo(point.x, point.y);
+      });
+      context.strokeStyle = `rgba(255, 112, 139, ${repairGlow * 0.68})`;
+      context.lineWidth = Math.max(0.8, scale * 0.009 * repairGlow);
+      context.shadowColor = "rgba(255, 35, 82, 0.9)";
+      context.shadowBlur = scale * 0.034 * repairGlow;
+      context.stroke();
+    });
+  }
+  context.restore();
+};
+
+const drawHeartReflection = (context, width, height, scale, opacity) => {
+  const centerX = width * 0.5;
+  const centerY = height * (width < 620 ? 0.43 : 0.46);
+  context.save();
+  context.globalAlpha = opacity;
+  context.filter = `blur(${Math.max(7, scale * 0.045)}px)`;
+  const glow = context.createRadialGradient(centerX, centerY + scale * 0.78, 0, centerX, centerY + scale * 0.78, scale * 0.92);
+  glow.addColorStop(0, "rgba(255, 24, 70, 0.34)");
+  glow.addColorStop(0.42, "rgba(130, 0, 32, 0.18)");
+  glow.addColorStop(1, "rgba(34, 0, 10, 0)");
+  context.fillStyle = glow;
+  context.beginPath();
+  context.ellipse(centerX, centerY + scale * 0.78, scale * 0.82, scale * 0.18, 0, 0, Math.PI * 2);
+  context.fill();
+  context.filter = "none";
+  context.restore();
+};
+
+const drawHeartDebris = (context, width, height, scale, progress, mobile) => {
+  const count = mobile ? 21 : 38;
+  const centerX = width * 0.5;
+  const centerY = height * (mobile ? 0.43 : 0.46);
+
+  context.save();
+  for (let index = 0; index < count; index += 1) {
+    const seed = index * 4.781 + 1.37;
+    const delay = (index % 9) * 0.012;
+    const capture = easeOutQuint((progress - 0.035 - delay) / 0.5);
+    const visibility = smoothStep(0.01, 0.1, progress) * (1 - smoothStep(0.42 + delay, 0.67 + delay, progress));
+    if (visibility <= 0.002) continue;
+
+    const prefersTail = index % 5 === 0;
+    const angle = prefersTail
+      ? Math.PI * (0.38 + (Math.sin(seed) * 0.5 + 0.5) * 0.24)
+      : seed * 0.83;
+    const startDistance = scale * (1.02 + (Math.sin(seed * 1.93) * 0.5 + 0.5) * 0.84);
+    const targetDistance = scale * (0.68 + (Math.sin(seed * 2.41) * 0.5 + 0.5) * 0.28);
+    const distance = startDistance + (targetDistance - startDistance) * capture;
+    const tail = prefersTail ? scale * (0.38 + (index % 3) * 0.1) * (1 - capture) : 0;
+    const x = centerX + Math.cos(angle) * distance;
+    const y = centerY + Math.sin(angle) * distance * 0.75 + tail;
+    const rotation = seed + capture * (2.1 + (index % 4) * 0.56);
+    const size = scale * (0.018 + (index % 6) * 0.006) * (0.82 + capture * 0.18);
+    const bright = index % 7 === 0;
+
+    context.save();
+    context.translate(x, y);
+    context.rotate(rotation);
+    context.beginPath();
+    context.moveTo(-size * 0.92, -size * 0.38);
+    context.lineTo(size, 0);
+    context.lineTo(-size * 0.5, size * (0.42 + (index % 3) * 0.18));
+    context.closePath();
+    context.fillStyle = bright
+      ? `rgba(255, 220, 226, ${visibility * 0.82})`
+      : `rgba(${118 + (index % 4) * 28}, 0, ${25 + (index % 3) * 15}, ${visibility * 0.86})`;
+    context.fill();
+    context.strokeStyle = `rgba(255, 76, 111, ${visibility * 0.58})`;
+    context.lineWidth = Math.max(0.45, scale * 0.0025);
+    context.stroke();
+    context.restore();
+  }
+  context.restore();
+};
+
+const drawHeartGloss = (context, clipPath, width, height, scale, healing, gleamProgress) => {
+  const centerX = width * 0.5;
+  const centerY = height * (width < 620 ? 0.43 : 0.46);
+  context.save();
+  context.clip(clipPath);
+  context.globalCompositeOperation = "screen";
+
+  const leftHighlight = context.createRadialGradient(
+    centerX - scale * 0.4,
+    centerY - scale * 0.47,
+    scale * 0.015,
+    centerX - scale * 0.34,
+    centerY - scale * 0.4,
+    scale * 0.48
+  );
+  leftHighlight.addColorStop(0, `rgba(255, 250, 251, ${0.4 + healing * 0.11})`);
+  leftHighlight.addColorStop(0.16, `rgba(255, 184, 198, ${0.3 + healing * 0.07})`);
+  leftHighlight.addColorStop(0.55, "rgba(255, 42, 82, 0.09)");
+  leftHighlight.addColorStop(1, "rgba(255, 10, 58, 0)");
+  context.fillStyle = leftHighlight;
+  context.fillRect(centerX - scale * 1.25, centerY - scale * 1.1, scale * 2.5, scale * 2.2);
+
+  const rightHighlight = context.createRadialGradient(
+    centerX + scale * 0.39,
+    centerY - scale * 0.43,
+    0,
+    centerX + scale * 0.39,
+    centerY - scale * 0.37,
+    scale * 0.42
+  );
+  rightHighlight.addColorStop(0, `rgba(255, 244, 248, ${0.34 + healing * 0.13})`);
+  rightHighlight.addColorStop(0.2, "rgba(255, 151, 174, 0.24)");
+  rightHighlight.addColorStop(0.62, "rgba(255, 24, 68, 0.05)");
+  rightHighlight.addColorStop(1, "rgba(255, 0, 45, 0)");
+  context.fillStyle = rightHighlight;
+  context.fillRect(centerX - scale * 1.2, centerY - scale, scale * 2.4, scale * 2);
+
+  const lowerShade = context.createLinearGradient(0, centerY - scale * 0.15, 0, centerY + scale * 0.92);
+  lowerShade.addColorStop(0, "rgba(255, 20, 60, 0)");
+  lowerShade.addColorStop(0.62, "rgba(104, 0, 27, 0.2)");
+  lowerShade.addColorStop(1, "rgba(35, 0, 11, 0.54)");
+  context.globalCompositeOperation = "multiply";
+  context.fillStyle = lowerShade;
+  context.fillRect(centerX - scale * 1.25, centerY - scale, scale * 2.5, scale * 2.1);
+
+  if (gleamProgress > 0.001) {
+    const sweepX = centerX - scale * 1.24 + gleamProgress * scale * 2.48;
+    const sweep = context.createLinearGradient(sweepX - scale * 0.16, 0, sweepX + scale * 0.16, 0);
+    const visibility = Math.sin(gleamProgress * Math.PI);
+    sweep.addColorStop(0, "rgba(255, 255, 255, 0)");
+    sweep.addColorStop(0.42, `rgba(255, 217, 226, ${visibility * 0.3})`);
+    sweep.addColorStop(0.5, `rgba(255, 255, 255, ${visibility * 0.72})`);
+    sweep.addColorStop(0.58, `rgba(255, 194, 211, ${visibility * 0.25})`);
+    sweep.addColorStop(1, "rgba(255, 255, 255, 0)");
+    context.globalCompositeOperation = "screen";
+    context.fillStyle = sweep;
+    context.save();
+    context.translate(sweepX, centerY);
+    context.rotate(-0.22);
+    context.translate(-sweepX, -centerY);
+    context.fillRect(sweepX - scale * 0.24, centerY - scale * 1.2, scale * 0.48, scale * 2.4);
+    context.restore();
+  }
   context.restore();
 };
 
@@ -622,15 +868,15 @@ const drawHeartSparkles = (context, width, height, scale, progress) => {
 
   context.save();
   context.globalCompositeOperation = "screen";
-  for (let index = 0; index < 18; index += 1) {
+  for (let index = 0; index < 7; index += 1) {
     const seed = index * 9.73;
     const angle = seed * 0.71;
-    const distance = scale * (0.68 + (Math.sin(seed) * 0.5 + 0.5) * 0.62);
+    const distance = scale * (0.72 + (Math.sin(seed) * 0.5 + 0.5) * 0.44);
     const travel = progress * scale * (0.08 + (index % 4) * 0.016);
     const x = width * 0.5 + Math.cos(angle) * (distance + travel);
-    const y = height * (width < 620 ? 0.43 : 0.48) + Math.sin(angle) * (distance * 0.72 + travel);
-    const size = (2.2 + (index % 5) * 0.75) * visibility;
-    const alpha = visibility * (0.28 + (index % 3) * 0.2);
+    const y = height * (width < 620 ? 0.43 : 0.46) + Math.sin(angle) * (distance * 0.72 + travel);
+    const size = (3.1 + (index % 4) * 1.05) * visibility;
+    const alpha = visibility * (0.46 + (index % 3) * 0.16);
 
     context.beginPath();
     context.moveTo(x, y - size * 2.4);
@@ -658,27 +904,47 @@ const renderHeartIntro = (progress) => {
   const { width, height } = size;
   const context = heartIntroContext;
   const mobile = width < 620;
-  const scale = Math.min(width * (mobile ? 0.43 : 0.26), height * (mobile ? 0.3 : 0.32));
-  const assembly = reduceMotion ? 1 : easeOutQuint((progress - 0.08) / 0.5);
-  const healing = reduceMotion ? 1 : smoothStep(0.57, 0.78, progress);
-  const reveal = reduceMotion ? smoothStep(0.02, 0.2, progress) : smoothStep(0.1, 0.56, progress);
-  const finish = smoothStep(reduceMotion ? 0.68 : 0.88, 1, progress);
-  const scattered = Math.pow(1 - assembly, 1.12);
-  const rotation = {
-    x: -0.08 + assembly * 0.04 + Math.sin(progress * Math.PI * 2) * 0.018,
-    y: -0.42 + assembly * 0.54 + Math.sin(progress * Math.PI) * 0.05,
-    z: -0.035 + assembly * 0.035,
-  };
+  const mesh = mobile ? heartMeshes.mobile : heartMeshes.desktop;
+  const assembly = reduceMotion ? 1 : smoothStep(0.035, 0.59, progress);
+  const healing = reduceMotion ? 1 : smoothStep(0.56, 0.77, progress);
+  const reveal = reduceMotion ? smoothStep(0.02, 0.2, progress) : smoothStep(0.035, 0.46, progress);
+  const finish = smoothStep(reduceMotion ? 0.68 : 0.9, 1, progress);
+  const fracture = reduceMotion ? 0 : smoothStep(0.22, 0.5, progress) * (1 - healing);
+  const finalBreath = reduceMotion ? 0 : Math.sin(smoothStep(0.73, 0.9, progress) * Math.PI) * 0.012;
+  const scale =
+    Math.min(width * (mobile ? 0.455 : 0.255), height * (mobile ? 0.285 : 0.34)) *
+    (1 + finalBreath);
+  const rotation = reduceMotion
+    ? { x: -0.027, y: 0.055, z: 0 }
+    : {
+        x: -0.055 + assembly * 0.028 + Math.sin(progress * Math.PI * 2) * 0.008,
+        y: -0.21 + assembly * 0.265 + Math.sin(progress * Math.PI) * 0.018,
+        z: -0.025 + assembly * 0.025,
+      };
+  const motions = mesh.groups.map((group) => {
+    const lockDelay = group.index === 6 || group.index === 10 ? 0.045 : 0;
+    const localAssembly = reduceMotion
+      ? 1
+      : easeOutQuint((progress - 0.045 - group.arrival * 0.1 - lockDelay) / 0.46);
+    return {
+      scattered: Math.pow(1 - localAssembly, 1.28),
+      fracture,
+    };
+  });
+  const bodyAlpha = smoothStep(0.01, 0.12, progress) * (1 - finish * 0.72);
 
   heartIntro?.style.setProperty("--heart-intro-reveal", reveal.toFixed(4));
   heartIntro?.style.setProperty("--heart-intro-finish", finish.toFixed(4));
-  if (progress >= (reduceMotion ? 0.36 : 0.72)) heartIntro?.classList.add("is-healed");
+  if (progress >= (reduceMotion ? 0.36 : 0.73)) heartIntro?.classList.add("is-healed");
 
   context.clearRect(0, 0, width, height);
-  const drawable = heartMesh.triangles.map((triangle) => {
-    const group = heartMesh.groups[triangle.group];
+  drawHeartReflection(context, width, height, scale, bodyAlpha * (0.25 + assembly * 0.75));
+  if (!reduceMotion) drawHeartDebris(context, width, height, scale, progress, mobile);
+
+  const drawable = mesh.triangles.map((triangle) => {
+    const group = mesh.groups[triangle.group];
     const points3d = [triangle.a, triangle.b, triangle.c].map((index) =>
-      transformHeartVertex(heartMesh.vertices[index], group, scattered, rotation)
+      transformHeartVertex(mesh.vertices[index], group, motions[triangle.group], rotation)
     );
     return {
       ...triangle,
@@ -688,22 +954,59 @@ const renderHeartIntro = (progress) => {
     };
   }).sort((a, b) => a.depth - b.depth);
 
-  context.save();
-  context.globalAlpha = smoothStep(0.015, 0.16, progress) * (1 - finish * 0.72);
+  const centerX = width * 0.5;
+  const centerY = height * (mobile ? 0.43 : 0.46);
+  const frontClip = new Path2D();
+  const groupPaths = mesh.groups.map(() => new Path2D());
+  const groupDepth = mesh.groups.map(() => ({ sum: 0, count: 0 }));
+
   drawable.forEach((triangle) => {
-    const [a3, b3, c3] = triangle.points3d;
-    const edge1 = { x: b3.x - a3.x, y: b3.y - a3.y, z: b3.z - a3.z };
-    const edge2 = { x: c3.x - a3.x, y: c3.y - a3.y, z: c3.z - a3.z };
-    const normal = {
-      x: edge1.y * edge2.z - edge1.z * edge2.y,
-      y: edge1.z * edge2.x - edge1.x * edge2.z,
-      z: edge1.x * edge2.y - edge1.y * edge2.x,
-    };
-    const normalLength = Math.max(0.0001, Math.hypot(normal.x, normal.y, normal.z));
-    const light = clamp((normal.x * -0.28 + normal.y * -0.42 + Math.abs(normal.z) * 0.92) / normalLength, 0, 1);
-    const facet = (triangle.group % 5) * 1.4;
-    const lightness = triangle.side ? 17 + light * 16 : 24 + light * 30 + facet + healing * 7;
-    const saturation = triangle.side ? 58 : 70 + healing * 8;
+    if (triangle.side) return;
+    const [a, b, c] = triangle.points2d;
+    const path = groupPaths[triangle.group];
+    [frontClip, path].forEach((target) => {
+      target.moveTo(a.x, a.y);
+      target.lineTo(b.x, b.y);
+      target.lineTo(c.x, c.y);
+      target.closePath();
+    });
+    groupDepth[triangle.group].sum += triangle.depth;
+    groupDepth[triangle.group].count += 1;
+  });
+
+  const depthOrder = groupDepth
+    .map((value, index) => ({
+      index,
+      depth: value.sum / Math.max(1, value.count),
+    }))
+    .sort((a, b) => a.depth - b.depth);
+
+  context.save();
+  context.globalAlpha = bodyAlpha * (0.18 + fracture * 0.5);
+  depthOrder.forEach(({ index }) => {
+    context.fillStyle = "rgba(19, 0, 7, 0.72)";
+    context.shadowColor = "rgba(0, 0, 0, 0.92)";
+    context.shadowBlur = 5 + scale * 0.055 * fracture;
+    context.shadowOffsetY = 2 + scale * 0.02 * fracture;
+    context.fill(groupPaths[index]);
+  });
+  context.restore();
+
+  const material = context.createLinearGradient(
+    centerX - scale * 0.82,
+    centerY - scale * 0.9,
+    centerX + scale * 0.72,
+    centerY + scale * 0.95
+  );
+  material.addColorStop(0, "#ff5875");
+  material.addColorStop(0.16, "#ff1748");
+  material.addColorStop(0.42, "#ea003a");
+  material.addColorStop(0.7, "#a60029");
+  material.addColorStop(1, "#430011");
+
+  context.save();
+  context.globalAlpha = bodyAlpha;
+  drawable.forEach((triangle) => {
     const [a, b, c] = triangle.points2d;
 
     context.beginPath();
@@ -711,17 +1014,40 @@ const renderHeartIntro = (progress) => {
     context.lineTo(b.x, b.y);
     context.lineTo(c.x, c.y);
     context.closePath();
-    context.fillStyle = `hsl(${344 + triangle.group * 0.32} ${saturation}% ${lightness}%)`;
+    if (triangle.side) {
+      const sideLight = clamp((triangle.depth + 0.45) * 0.42, 0, 0.22);
+      context.fillStyle = `rgba(${68 + sideLight * 80}, 0, ${18 + sideLight * 34}, 0.98)`;
+      context.strokeStyle = "rgba(255, 47, 84, 0.2)";
+      context.lineWidth = Math.max(0.55, scale * 0.0035);
+    } else {
+      context.fillStyle = material;
+      context.strokeStyle = material;
+      context.lineWidth = 1.25;
+    }
     context.fill();
-    context.strokeStyle = `rgba(255, 188, 203, ${triangle.side ? 0.025 : 0.055 + healing * 0.035})`;
-    context.lineWidth = 0.72;
     context.stroke();
+
+    if (!triangle.side && fracture > 0.001) {
+      const tone = mesh.groups[triangle.group].tone;
+      context.fillStyle = tone > 0.5
+        ? `rgba(255, 91, 112, ${(tone - 0.5) * 0.2 * fracture})`
+        : `rgba(41, 0, 14, ${(0.5 - tone) * 0.26 * fracture})`;
+      context.fill();
+    }
   });
   context.restore();
 
-  drawHeartCracks(context, width, height, scale, rotation, assembly, healing);
-  const sparkleProgress = smoothStep(reduceMotion ? 0.3 : 0.73, reduceMotion ? 0.82 : 0.94, progress);
-  drawHeartSparkles(context, width, height, scale, sparkleProgress);
+  const gleamProgress = reduceMotion ? 0 : smoothStep(0.72, 0.91, progress);
+  context.save();
+  context.globalAlpha = bodyAlpha;
+  drawHeartGloss(context, frontClip, width, height, scale, healing, gleamProgress);
+  context.restore();
+
+  drawHeartCracks(context, mesh, motions, width, height, scale, rotation, assembly, healing);
+  if (!reduceMotion) {
+    const sparkleProgress = smoothStep(0.74, 0.92, progress);
+    drawHeartSparkles(context, width, height, scale, sparkleProgress);
+  }
 };
 
 const finishHeartIntro = (run) => {
@@ -763,7 +1089,7 @@ const playHeartIntro = () => {
 
   stopHeartIntro();
   const run = ++heartIntroRun;
-  const duration = reduceMotion ? 920 : 4700;
+  const duration = reduceMotion ? 920 : 4200;
   const start = performance.now();
   heartIntro.hidden = false;
   heartIntro.setAttribute("aria-hidden", "false");
