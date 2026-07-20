@@ -222,6 +222,10 @@ let heartIntroResolve = null;
 let immersiveEntryToken = 0;
 
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+const smoothstep = (start, end, value) => {
+  const normalized = clamp((value - start) / (end - start), 0, 1);
+  return normalized * normalized * (3 - 2 * normalized);
+};
 const isImmersiveActive = () => document.body.classList.contains("immersive-active");
 const setInlineProperty = (element, property, value) => {
   if (element.style.getPropertyValue(property) !== value) {
@@ -505,7 +509,7 @@ const renderImmersiveProgress = (progress, stageHeight) => {
 
   const scenePosition = progress * (immersiveScenes.length - 1);
   let activeScene = clamp(Math.round(scenePosition), 0, immersiveScenes.length - 1);
-  if (immersiveActiveScene >= 0 && Math.abs(scenePosition - immersiveActiveScene) < 0.56) {
+  if (immersiveActiveScene >= 0 && Math.abs(scenePosition - immersiveActiveScene) < 0.6) {
     activeScene = immersiveActiveScene;
   }
   const activeSceneChanged = activeScene !== immersiveActiveScene;
@@ -529,11 +533,13 @@ const renderImmersiveProgress = (progress, stageHeight) => {
     const distance = index - scenePosition;
     const absoluteDistance = Math.abs(distance);
     const isNearby = absoluteDistance < 1.08;
-    const sceneFadeRange = 0.98;
-    const opacity = absoluteDistance >= sceneFadeRange
-      ? 0
-      : Math.pow(Math.cos((absoluteDistance / sceneFadeRange) * Math.PI * 0.5), 0.82);
-    const presence = clamp(1 - absoluteDistance / sceneFadeRange, 0, 1);
+
+    // Give every photo room to leave before the next one arrives. The signed
+    // distance keeps the same exit-then-entrance rhythm when scrolling back up.
+    const presence = distance < 0
+      ? 1 - smoothstep(0.08, 0.58, absoluteDistance)
+      : 1 - smoothstep(0, 0.4, absoluteDistance);
+    const opacity = Math.pow(presence, 0.82);
     const copyWindow = clamp((presence - 0.48) / 0.52, 0, 1);
     const copyPresence = copyWindow * copyWindow * (3 - 2 * copyWindow);
     const whisperPresence = Math.pow(presence, 2.2);
