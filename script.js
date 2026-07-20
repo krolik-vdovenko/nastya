@@ -1913,7 +1913,6 @@ const enterImmersiveMode = () => {
   resetImmersivePointer();
 
   const warmupPromise = warmImmersiveImages();
-  setImmersiveExitReady(true);
   warmupPromise.finally(() => {
     if (entryToken !== immersiveEntryToken || !isImmersiveActive()) return;
     immersiveEntryPending = false;
@@ -1924,7 +1923,6 @@ const enterImmersiveMode = () => {
     refreshImmersiveMetrics(true);
     window.scrollTo(0, 0);
     updateImmersiveProgress();
-    setImmersiveExitReady(true);
     mode3dButton.focus({ preventScroll: true });
   });
 };
