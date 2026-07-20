@@ -174,6 +174,24 @@ const immersiveExit = immersiveShell?.querySelector(".immersive-exit");
 const heartIntro = immersiveShell?.querySelector(".heart-intro");
 const heartIntroCanvas = heartIntro?.querySelector(".heart-intro-canvas");
 const heartIntroContext = heartIntroCanvas?.getContext("2d", { alpha: true });
+let heartHandsReady = false;
+let heartHandsWarmupPromise = null;
+const heartHandsImage = new Image();
+heartHandsImage.decoding = "async";
+const heartHandsClosedImage = new Image();
+heartHandsClosedImage.decoding = "async";
+const heartHandsImages = [heartHandsImage, heartHandsClosedImage];
+const heartHandsSources = [
+  "assets/heart-hands-v2.webp",
+  "assets/heart-hands-closed-v2.webp",
+];
+const isHeartHandsImageReady = (image) => image.complete && image.naturalWidth > 0;
+const updateHeartHandsReady = () => {
+  heartHandsReady = heartHandsImages.every(isHeartHandsImageReady);
+};
+heartHandsImages.forEach((image) => {
+  image.addEventListener("load", updateHeartHandsReady, { once: true });
+});
 const mode3dButton = document.querySelector(".mode-3d-toggle");
 const classicMain = document.querySelector("main");
 const classicFooter = document.querySelector(".footer");
@@ -227,6 +245,19 @@ const setImmersiveExitReady = (ready) => {
 
 setImmersiveExitReady(false);
 
+const warmHeartHands = () => {
+  if (heartHandsReady) return Promise.resolve();
+  if (heartHandsWarmupPromise) return heartHandsWarmupPromise;
+
+  heartHandsImages.forEach((image, index) => {
+    if (!image.src) image.src = heartHandsSources[index];
+  });
+  heartHandsWarmupPromise = Promise.allSettled(
+    heartHandsImages.map((image) => image.decode?.() ?? Promise.resolve())
+  ).then(updateHeartHandsReady);
+  return heartHandsWarmupPromise;
+};
+
 const warmImmersiveImages = () => {
   if (immersiveWarmupPromise) return immersiveWarmupPromise;
 
@@ -234,9 +265,10 @@ const warmImmersiveImages = () => {
     image.loading = "eager";
   });
 
-  immersiveWarmupPromise = Promise.allSettled(
-    immersiveImages.map((image) => image.decode?.() ?? Promise.resolve())
-  );
+  immersiveWarmupPromise = Promise.allSettled([
+    ...immersiveImages.map((image) => image.decode?.() ?? Promise.resolve()),
+    warmHeartHands(),
+  ]);
 
   return immersiveWarmupPromise;
 };
@@ -920,16 +952,14 @@ const drawHeartCracks = (context, mesh, motions, width, height, scale, rotation,
   if (assembly < 0.66 || healing >= 0.998) return;
 
   const visibility = smoothStep(0.66, 0.86, assembly) * (1 - healing);
-  const cavityWidth = Math.max(1.1, scale * (0.024 - healing * 0.019));
-  const rimWidth = Math.max(0.55, scale * (0.0055 - healing * 0.0038));
+  const cavityWidth = Math.max(1.1, scale * (0.022 - healing * 0.017));
   const crackPaths = [
-    [[0, -0.58], [0.035, -0.37], [-0.06, -0.17], [0.075, 0.01], [-0.035, 0.25], [0.02, 0.64]],
-    [[-0.5, -0.55], [-0.37, -0.31], [-0.23, -0.18], [-0.06, -0.17]],
-    [[0.5, -0.55], [0.38, -0.32], [0.27, -0.17], [0.075, 0.01]],
-    [[-0.23, -0.18], [-0.43, -0.07], [-0.58, 0.11]],
-    [[0.075, 0.01], [0.31, 0.09], [0.52, 0.24]],
-    [[-0.035, 0.25], [-0.24, 0.36], [-0.34, 0.5]],
-    [[-0.035, 0.25], [0.2, 0.34], [0.32, 0.47]],
+    [[0.012, -0.63], [-0.035, -0.49], [0.028, -0.37], [-0.018, -0.23], [0.068, -0.1], [-0.024, 0.045], [0.042, 0.18], [-0.034, 0.32], [0.018, 0.48], [-0.035, 0.66]],
+    [[-0.018, -0.23], [-0.17, -0.3], [-0.31, -0.285], [-0.46, -0.4]],
+    [[0.068, -0.1], [0.19, -0.18], [0.31, -0.31], [0.43, -0.48]],
+    [[0.042, 0.18], [0.18, 0.235], [0.34, 0.22], [0.48, 0.31]],
+    [[-0.034, 0.32], [-0.17, 0.39], [-0.32, 0.43]],
+    [[0.018, 0.48], [0.13, 0.52], [0.21, 0.59]],
   ];
   const projectCrackPoint = ([x, y]) => {
     const radius = clamp(Math.hypot(x / 0.94, y / 0.73), 0, 1);
@@ -938,24 +968,9 @@ const drawHeartCracks = (context, mesh, motions, width, height, scale, rotation,
   };
 
   context.save();
-  context.lineCap = "round";
-  context.lineJoin = "round";
-  const cavityPoints = [
-    [-0.095, -0.085], [0.005, -0.145], [0.105, -0.055], [0.09, 0.07], [0.005, 0.13], [-0.105, 0.06],
-  ].map(projectCrackPoint);
-  context.beginPath();
-  cavityPoints.forEach((point, index) => {
-    if (index === 0) context.moveTo(point.x, point.y);
-    else context.lineTo(point.x, point.y);
-  });
-  context.closePath();
-  context.fillStyle = `rgba(12, 0, 5, ${0.94 * visibility})`;
-  context.shadowColor = `rgba(0, 0, 0, ${0.9 * visibility})`;
-  context.shadowBlur = scale * 0.075 * visibility;
-  context.fill();
-  context.strokeStyle = `rgba(171, 0, 39, ${0.72 * visibility})`;
-  context.lineWidth = Math.max(1, scale * 0.012 * visibility);
-  context.stroke();
+  context.lineCap = "square";
+  context.lineJoin = "miter";
+  context.miterLimit = 2.5;
 
   crackPaths.forEach((path, pathIndex) => {
     const points = path.map(projectCrackPoint);
@@ -964,20 +979,16 @@ const drawHeartCracks = (context, mesh, motions, width, height, scale, rotation,
       if (index === 0) context.moveTo(point.x, point.y);
       else context.lineTo(point.x, point.y);
     });
-    context.strokeStyle = `rgba(12, 0, 5, ${0.94 * visibility})`;
-    context.lineWidth = cavityWidth * (pathIndex === 0 ? 1.18 : 0.9);
-    context.shadowColor = `rgba(0, 0, 0, ${0.86 * visibility})`;
-    context.shadowBlur = cavityWidth * 1.25;
+    context.strokeStyle = `rgba(9, 0, 4, ${0.97 * visibility})`;
+    context.lineWidth = cavityWidth * (pathIndex === 0 ? 1.12 : 0.52);
+    context.shadowColor = `rgba(35, 0, 12, ${0.72 * visibility})`;
+    context.shadowBlur = cavityWidth * 0.8;
     context.stroke();
 
-    context.shadowBlur = 0;
-    context.strokeStyle = `rgba(132, 0, 31, ${0.9 * visibility})`;
-    context.lineWidth = cavityWidth * 0.34;
-    context.stroke();
-
-    if (pathIndex % 2 === 0) {
-      context.strokeStyle = `rgba(255, 201, 211, ${0.36 * visibility})`;
-      context.lineWidth = rimWidth;
+    if (pathIndex === 0) {
+      context.shadowBlur = 0;
+      context.strokeStyle = `rgba(113, 0, 29, ${0.34 * visibility})`;
+      context.lineWidth = Math.max(0.7, cavityWidth * 0.16);
       context.stroke();
     }
   });
@@ -1427,6 +1438,178 @@ const drawHeartSparkles = (context, width, height, scale, progress) => {
   context.restore();
 };
 
+const drawHeartSqueezeAura = (context, width, height, scale, squeeze, reveal) => {
+  if (squeeze <= 0.002) return;
+  const centerX = width * 0.5;
+  const centerY = height * (width < 620 ? 0.43 : 0.46);
+  const pulse = Math.sin(clamp(squeeze, 0, 1) * Math.PI * 0.5);
+
+  context.save();
+  context.globalCompositeOperation = "screen";
+  context.globalAlpha = pulse * (0.52 + reveal * 0.26);
+  const glow = context.createRadialGradient(
+    centerX,
+    centerY - scale * 0.02,
+    scale * 0.06,
+    centerX,
+    centerY,
+    scale * 0.72
+  );
+  glow.addColorStop(0, "rgba(255, 232, 238, 0.72)");
+  glow.addColorStop(0.18, "rgba(255, 67, 111, 0.52)");
+  glow.addColorStop(0.55, "rgba(174, 0, 47, 0.16)");
+  glow.addColorStop(1, "rgba(92, 0, 28, 0)");
+  context.fillStyle = glow;
+  context.beginPath();
+  context.ellipse(centerX, centerY, scale * 0.78, scale * 0.66, 0, 0, Math.PI * 2);
+  context.fill();
+  context.restore();
+};
+
+const getHeartHandsLayout = (width, height, scale, mobile) => {
+  const centerX = width * 0.5;
+  const centerY = height * (mobile ? 0.43 : 0.46);
+  const renderSize = mobile
+    ? Math.min(width * 1.22, height * 0.62, scale * 3.05)
+    : Math.min(width * 0.58, height * 0.9, scale * 2.78);
+  return {
+    centerX,
+    centerY,
+    renderSize,
+    destinationLeft: centerX - renderSize * 0.5,
+    destinationTop: centerY - renderSize * 0.5,
+  };
+};
+
+const drawOpenHeartHands = (
+  context,
+  width,
+  height,
+  scale,
+  leftSqueeze,
+  rightSqueeze,
+  visibility,
+  mobile
+) => {
+  if (!isHeartHandsImageReady(heartHandsImage) || visibility <= 0.002) return;
+
+  const imageWidth = heartHandsImage.naturalWidth;
+  const imageHeight = heartHandsImage.naturalHeight;
+  if (!imageWidth || !imageHeight) return;
+
+  const {
+    centerX,
+    centerY,
+    renderSize,
+    destinationLeft,
+    destinationTop,
+  } = getHeartHandsLayout(width, height, scale, mobile);
+  const sourceHalf = imageWidth * 0.5;
+  const destinationHalf = renderSize * 0.5;
+
+  context.save();
+  context.globalAlpha = visibility;
+
+  [-1, 1].forEach((side) => {
+    const isLeft = side < 0;
+    const squeeze = isLeft ? leftSqueeze : rightSqueeze;
+    const inwardTravel = renderSize * 0.128 * squeeze;
+    const lift = renderSize * 0.015 * squeeze;
+    const handScale = 1 + squeeze * 0.036;
+    const pivotX = centerX + side * renderSize * 0.245;
+    const pivotY = centerY + renderSize * 0.34;
+    const destinationX = destinationLeft + (isLeft ? 0 : destinationHalf);
+    const sourceOverlap = 3;
+    const sourceX = isLeft ? 0 : sourceHalf - sourceOverlap;
+    const sourceWidth = sourceHalf + sourceOverlap;
+
+    context.save();
+    context.translate(pivotX - side * inwardTravel, pivotY - lift);
+    context.rotate(-side * squeeze * 0.126);
+    context.scale(handScale, handScale);
+    context.translate(-pivotX, -pivotY);
+    context.drawImage(
+      heartHandsImage,
+      sourceX,
+      0,
+      sourceWidth,
+      imageHeight,
+      destinationX,
+      destinationTop,
+      destinationHalf + renderSize * (sourceOverlap / imageWidth),
+      renderSize
+    );
+    context.restore();
+  });
+
+  context.restore();
+};
+
+const drawClosedHeartHands = (context, width, height, scale, visibility, mobile) => {
+  if (visibility <= 0.002) return;
+  if (!isHeartHandsImageReady(heartHandsClosedImage)) {
+    drawOpenHeartHands(context, width, height, scale, 1, 1, visibility, mobile);
+    return;
+  }
+  const imageWidth = heartHandsClosedImage.naturalWidth;
+  const imageHeight = heartHandsClosedImage.naturalHeight;
+  if (!imageWidth || !imageHeight) return;
+
+  const {
+    centerX,
+    centerY,
+    renderSize,
+    destinationLeft,
+    destinationTop,
+  } = getHeartHandsLayout(width, height, scale, mobile);
+  const settle = 1 - Math.min(1, visibility);
+  const closedSize = renderSize * (1.015 + settle * 0.012);
+
+  context.save();
+  context.globalAlpha = visibility;
+  context.translate(centerX, centerY - renderSize * 0.015);
+  context.scale(closedSize / renderSize, closedSize / renderSize);
+  context.translate(-centerX, -centerY);
+  context.drawImage(
+    heartHandsClosedImage,
+    0,
+    0,
+    imageWidth,
+    imageHeight,
+    destinationLeft,
+    destinationTop - renderSize * 0.015,
+    renderSize,
+    renderSize
+  );
+  context.restore();
+};
+
+const drawHeartHandsOcclusion = (context, width, height, scale, visibility) => {
+  if (visibility <= 0.002) return;
+  const centerX = width * 0.5;
+  const centerY = height * (width < 620 ? 0.43 : 0.46);
+
+  context.save();
+  context.globalAlpha = visibility;
+  const cover = context.createRadialGradient(
+    centerX,
+    centerY,
+    scale * 0.08,
+    centerX,
+    centerY,
+    scale * 0.78
+  );
+  cover.addColorStop(0, "rgba(18, 0, 7, 0.96)");
+  cover.addColorStop(0.52, "rgba(34, 0, 13, 0.84)");
+  cover.addColorStop(0.82, "rgba(50, 0, 18, 0.28)");
+  cover.addColorStop(1, "rgba(50, 0, 18, 0)");
+  context.fillStyle = cover;
+  context.beginPath();
+  context.ellipse(centerX, centerY, scale * 0.84, scale * 0.76, 0, 0, Math.PI * 2);
+  context.fill();
+  context.restore();
+};
+
 const renderHeartIntro = (progress) => {
   if (!heartIntroContext) return;
 
@@ -1436,68 +1619,89 @@ const renderHeartIntro = (progress) => {
   const context = heartIntroContext;
   const mobile = width < 620;
   const geometry = mobile ? heartPlateGeometries.mobile : heartPlateGeometries.desktop;
-  const assembly = reduceMotion ? 1 : smoothStep(0.04, 0.56, progress);
-  const healing = reduceMotion ? 1 : smoothStep(0.61, 0.84, progress);
-  const reveal = reduceMotion ? smoothStep(0.02, 0.2, progress) : smoothStep(0.025, 0.38, progress);
-  const finish = smoothStep(reduceMotion ? 0.68 : 0.925, 1, progress);
-  const brokenReveal = reduceMotion ? 0 : smoothStep(0.3, 0.53, progress);
-  const finalBreath = reduceMotion ? 0 : Math.sin(smoothStep(0.76, 0.91, progress) * Math.PI) * 0.011;
+  const reveal = reduceMotion ? smoothStep(0.02, 0.2, progress) : smoothStep(0.015, 0.14, progress);
+  const finish = smoothStep(reduceMotion ? 0.7 : 0.92, 1, progress);
+  const handsReveal = reduceMotion ? smoothStep(0.02, 0.2, progress) : smoothStep(0.02, 0.12, progress);
+  const leftClose = reduceMotion ? 0 : smoothStep(0.24, 0.43, progress);
+  const rightClose = reduceMotion ? 0 : smoothStep(0.252, 0.442, progress);
+  const leftOpen = reduceMotion ? 1 : smoothStep(0.548, 0.765, progress);
+  const rightOpen = reduceMotion ? 1 : smoothStep(0.535, 0.752, progress);
+  const leftSqueeze = reduceMotion ? 0 : leftClose * (1 - leftOpen);
+  const rightSqueeze = reduceMotion ? 0 : rightClose * (1 - rightOpen);
+  const squeeze = (leftSqueeze + rightSqueeze) * 0.5;
+  const closedIn = reduceMotion ? 0 : smoothStep(0.405, 0.46, progress);
+  const closedOut = reduceMotion ? 1 : smoothStep(0.565, 0.645, progress);
+  const closedHandsVisibility = closedIn * (1 - closedOut);
+  const openHandsVisibility = reduceMotion ? 1 : 1 - closedHandsVisibility;
+  const brokenVisibility = reduceMotion
+    ? 0
+    : handsReveal * (1 - smoothStep(0.39, 0.5, progress));
+  const healing = reduceMotion ? 1 : smoothStep(0.43, 0.59, progress);
+  const wholeVisibility = reduceMotion
+    ? smoothStep(0.04, 0.22, progress)
+    : smoothStep(0.54, 0.7, progress);
+  const heartVisibility = clamp(brokenVisibility + wholeVisibility, 0, 1);
+  const sceneAlpha = smoothStep(0.01, 0.11, progress) * (1 - finish * 0.72);
+  const finalBreath = reduceMotion
+    ? 0
+    : Math.sin(smoothStep(0.78, 0.93, progress) * Math.PI) * 0.011;
   const scale =
     Math.min(width * (mobile ? 0.42 : 0.29), height * (mobile ? 0.24 : 0.3)) *
     (1 + finalBreath);
-  const presentationTurn = reduceMotion ? 0 : Math.sin(smoothStep(0.75, 0.94, progress) * Math.PI) * 0.024;
+  const presentationTurn = reduceMotion
+    ? 0
+    : Math.sin(smoothStep(0.74, 0.94, progress) * Math.PI) * 0.021;
   const rotation = reduceMotion
     ? { x: -0.024, y: 0.038, z: 0 }
     : {
-        x: -0.065 + assembly * 0.039,
-        y: -0.13 + assembly * 0.168 + presentationTurn,
-        z: -0.018 + assembly * 0.018,
+        x: -0.035 + wholeVisibility * 0.011,
+        y: -0.045 + wholeVisibility * 0.083 + presentationTurn,
+        z: -0.006 + wholeVisibility * 0.006,
       };
   const frames = geometry.pieces.map((piece) => {
-    const localAssembly = reduceMotion ? 1 : easeOutQuint((progress - piece.delay) / 0.43);
     const localHealing = reduceMotion
       ? 1
-      : smoothStep(piece.healDelay, Math.min(1, piece.healDelay + 0.74), healing);
-    const settled = localAssembly >= 0.999;
+      : smoothStep(piece.healDelay * 0.72, Math.min(1, piece.healDelay * 0.72 + 0.68), healing);
     const healed = localHealing >= 0.985 || healing >= 0.998;
     const motion = {
-      scattered: settled ? 0 : Math.pow(1 - localAssembly, 1.22),
-      arc: reduceMotion ? 0 : Math.sin(localAssembly * Math.PI) * Math.pow(1 - localAssembly, 0.46),
-      split: healed ? 0 : brokenReveal * (1 - localHealing),
+      scattered: 0,
+      arc: 0,
+      split: 0,
       repairGlow: Math.sin(localHealing * Math.PI),
     };
     return {
       ...getHeartScreenFrame(piece, motion, rotation, width, height, scale),
-      localAssembly,
+      localAssembly: 1,
       localHealing,
     };
   }).sort((a, b) => a.depth - b.depth);
-  const bodyAlpha = smoothStep(0.01, 0.12, progress) * (1 - finish * 0.72);
+  const bodyAlpha = sceneAlpha * heartVisibility;
   const outline = getProjectedHeartOutline(geometry, rotation, width, height, scale);
-  const topcoatAlpha = reduceMotion ? 1 : smoothStep(0.38, 0.97, healing);
-  const plateVisibility = bodyAlpha * smoothStep(0.03, 0.2, progress);
+  const topcoatAlpha = 1;
+  const plateVisibility = bodyAlpha;
 
   heartIntro?.style.setProperty("--heart-intro-reveal", reveal.toFixed(4));
   heartIntro?.style.setProperty("--heart-intro-finish", finish.toFixed(4));
-  if (progress >= (reduceMotion ? 0.36 : 0.79)) heartIntro?.classList.add("is-healed");
+  const copyReveal = reduceMotion
+    ? reveal * (1 - finish)
+    : smoothStep(0.74, 0.84, progress) * (1 - finish);
+  heartIntro?.style.setProperty("--heart-copy-reveal", copyReveal.toFixed(4));
+  if (progress >= (reduceMotion ? 0.3 : 0.72)) heartIntro?.classList.add("is-healed");
 
   context.clearRect(0, 0, width, height);
-  drawHeartReflection(context, width, height, scale, bodyAlpha * (0.25 + assembly * 0.75));
-  if (!reduceMotion) drawHeartDebris(context, width, height, scale, progress, mobile);
+  drawHeartReflection(context, width, height, scale, bodyAlpha * (0.42 + wholeVisibility * 0.58));
 
   const centerX = width * 0.5;
   const centerY = height * (mobile ? 0.43 : 0.46);
   const frontClip = new Path2D();
   frames.forEach((frame) => appendHeartScreenPolygon(frontClip, frame.points2d));
 
-  const underbodyVisibility =
-    bodyAlpha * smoothStep(0.38, 0.72, assembly) * (0.48 + brokenReveal * 0.52);
+  const underbodyVisibility = bodyAlpha * (0.54 + (1 - topcoatAlpha) * 0.46);
   drawHeartUnderbody(context, outline.path, scale, underbodyVisibility);
 
-  const thicknessVisibility = plateVisibility * (0.28 + brokenReveal * 0.72) * (1 - topcoatAlpha * 0.84);
+  const thicknessVisibility = plateVisibility * (0.34 + (1 - topcoatAlpha) * 0.66) * (1 - topcoatAlpha * 0.84);
   frames.forEach((frame) => {
-    const arrival = smoothStep(0.08, 0.76, frame.localAssembly);
-    drawHeartPlateThickness(context, frame, scale, thicknessVisibility * arrival, mobile);
+    drawHeartPlateThickness(context, frame, scale, thicknessVisibility, mobile);
   });
 
   const material = context.createLinearGradient(
@@ -1514,8 +1718,6 @@ const renderHeartIntro = (progress) => {
 
   context.save();
   frames.forEach((frame) => {
-    const arrival = smoothStep(0.04, 0.58, frame.localAssembly);
-    if (arrival <= 0.001) return;
     const normal = frame.normal;
     const lambert = clamp(normal.x * -0.46 + normal.y * -0.58 + normal.z * 0.67, 0, 1);
     const halfLength = Math.hypot(-0.46, -0.58, 1.67);
@@ -1526,7 +1728,7 @@ const renderHeartIntro = (progress) => {
     const individuality = (1 - topcoatAlpha) * (frame.piece.tone - 0.5);
 
     context.save();
-    context.globalAlpha = arrival * plateVisibility;
+    context.globalAlpha = plateVisibility;
     context.fillStyle = material;
     context.fill(frame.path);
 
@@ -1545,7 +1747,7 @@ const renderHeartIntro = (progress) => {
     drawHeartPlateFacets(
       context,
       frame,
-      arrival * plateVisibility * (1 - topcoatAlpha) * (0.48 + brokenReveal * 0.52),
+      plateVisibility * (1 - topcoatAlpha) * 0.9,
       mobile
     );
 
@@ -1553,7 +1755,7 @@ const renderHeartIntro = (progress) => {
       context,
       frame,
       scale,
-      arrival * plateVisibility * (1 - topcoatAlpha * 0.97)
+      plateVisibility * (1 - topcoatAlpha * 0.97)
     );
   });
   context.restore();
@@ -1566,7 +1768,7 @@ const renderHeartIntro = (progress) => {
     context.restore();
   }
 
-  const gleamProgress = reduceMotion ? 0 : smoothStep(0.72, 0.91, progress);
+  const gleamProgress = reduceMotion ? 0 : smoothStep(0.76, 0.92, progress);
   context.save();
   context.globalAlpha = bodyAlpha;
   drawHeartGloss(
@@ -1581,13 +1783,44 @@ const renderHeartIntro = (progress) => {
   context.restore();
 
   if (!reduceMotion) {
-    drawHeartHealingSeams(context, frames, outline.path, scale, healing);
+    context.save();
+    context.globalAlpha = bodyAlpha;
+    drawHeartCracks(context, null, null, width, height, scale, rotation, 1, healing);
+    context.restore();
   }
-  drawHeartOuterRim(context, outline.points, scale, bodyAlpha * smoothStep(0.48, 0.96, healing));
+  drawHeartOuterRim(
+    context,
+    outline.points,
+    scale,
+    bodyAlpha * (brokenVisibility * 0.24 + smoothStep(0.46, 0.96, healing))
+  );
   if (!reduceMotion) {
-    const sparkleProgress = smoothStep(0.79, 0.94, progress);
+    const sparkleProgress = smoothStep(0.81, 0.95, progress);
     drawHeartSparkles(context, width, height, scale, sparkleProgress);
   }
+
+  drawHeartSqueezeAura(context, width, height, scale, squeeze, wholeVisibility);
+  const handsVisibility = sceneAlpha * handsReveal * (1 - smoothStep(0.9, 1, progress) * 0.14);
+  const occlusionVisibility = sceneAlpha * closedHandsVisibility * 0.96;
+  drawHeartHandsOcclusion(context, width, height, scale, occlusionVisibility);
+  drawOpenHeartHands(
+    context,
+    width,
+    height,
+    scale,
+    leftSqueeze,
+    rightSqueeze,
+    handsVisibility * openHandsVisibility,
+    mobile
+  );
+  drawClosedHeartHands(
+    context,
+    width,
+    height,
+    scale,
+    handsVisibility * closedHandsVisibility,
+    mobile
+  );
 };
 
 const finishHeartIntro = (run) => {
@@ -1600,6 +1833,7 @@ const finishHeartIntro = (run) => {
     heartIntro.setAttribute("aria-hidden", "true");
     heartIntro.style.removeProperty("--heart-intro-reveal");
     heartIntro.style.removeProperty("--heart-intro-finish");
+    heartIntro.style.removeProperty("--heart-copy-reveal");
   }
   document.body.classList.remove("immersive-intro-active");
   const resolve = heartIntroResolve;
@@ -1617,6 +1851,7 @@ const stopHeartIntro = () => {
     heartIntro.setAttribute("aria-hidden", "true");
     heartIntro.style.removeProperty("--heart-intro-reveal");
     heartIntro.style.removeProperty("--heart-intro-finish");
+    heartIntro.style.removeProperty("--heart-copy-reveal");
   }
   document.body.classList.remove("immersive-intro-active");
   const resolve = heartIntroResolve;
@@ -1629,8 +1864,7 @@ const playHeartIntro = () => {
 
   stopHeartIntro();
   const run = ++heartIntroRun;
-  const duration = reduceMotion ? 920 : 4200;
-  const start = performance.now();
+  const duration = reduceMotion ? 980 : 5600;
   heartIntro.hidden = false;
   heartIntro.setAttribute("aria-hidden", "false");
   heartIntro.classList.remove("is-healed");
@@ -1638,18 +1872,22 @@ const playHeartIntro = () => {
 
   return new Promise((resolve) => {
     heartIntroResolve = resolve;
-    const frame = (timestamp) => {
+    warmHeartHands().finally(() => {
       if (run !== heartIntroRun || !isImmersiveActive()) return;
-      const progress = clamp((timestamp - start) / duration, 0, 1);
-      renderHeartIntro(progress);
-      if (progress < 1) {
-        heartIntroFrame = requestAnimationFrame(frame);
-      } else {
-        finishHeartIntro(run);
-      }
-    };
-    renderHeartIntro(0);
-    heartIntroFrame = requestAnimationFrame(frame);
+      const start = performance.now();
+      const frame = (timestamp) => {
+        if (run !== heartIntroRun || !isImmersiveActive()) return;
+        const progress = clamp((timestamp - start) / duration, 0, 1);
+        renderHeartIntro(progress);
+        if (progress < 1) {
+          heartIntroFrame = requestAnimationFrame(frame);
+        } else {
+          finishHeartIntro(run);
+        }
+      };
+      renderHeartIntro(0);
+      heartIntroFrame = requestAnimationFrame(frame);
+    });
   });
 };
 
@@ -1678,9 +1916,10 @@ const enterImmersiveMode = () => {
   const introPromise = playHeartIntro();
   const warmupPromise = warmImmersiveImages();
   Promise.allSettled([introPromise, warmupPromise]).then(() => {
-    if (entryToken !== immersiveEntryToken) return;
+    if (entryToken !== immersiveEntryToken || !isImmersiveActive()) return;
     immersiveEntryPending = false;
     mode3dButton.removeAttribute("aria-busy");
+    setImmersiveExitReady(true);
   });
 
   requestAnimationFrame(() => {

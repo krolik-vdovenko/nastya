@@ -2457,6 +2457,7 @@ h3 {
 .heart-intro {
   --heart-intro-reveal: 0;
   --heart-intro-finish: 0;
+  --heart-copy-reveal: 0;
   position: absolute;
   z-index: 180;
   inset: 0;
@@ -2468,7 +2469,7 @@ h3 {
   background:
     radial-gradient(ellipse at 50% 47%, rgba(142, 0, 36, 0.52), transparent min(46vw, 43vh)),
     radial-gradient(ellipse at 50% 110%, rgba(226, 10, 59, 0.2), transparent 48%),
-    rgb(12 0 5 / calc(0.72 + var(--heart-intro-reveal) * 0.24));
+    rgb(12 0 5);
   opacity: calc(1 - var(--heart-intro-finish));
 }
 
@@ -2546,8 +2547,8 @@ h3 {
   margin: 0;
   color: rgba(255, 245, 246, 0.64);
   text-align: center;
-  opacity: calc(var(--heart-intro-reveal) * (1 - var(--heart-intro-finish)));
-  transform: translate3d(-50%, calc(18px - var(--heart-intro-reveal) * 18px), 0);
+  opacity: var(--heart-copy-reveal);
+  transform: translate3d(-50%, calc(14px - var(--heart-copy-reveal) * 14px), 0);
 }
 
 .heart-intro-copy span {
