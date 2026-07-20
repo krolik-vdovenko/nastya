@@ -3676,6 +3676,18 @@ body.immersive-active .mode-3d-toggle::after {
     animation: none !important;
   }
 
+  .heart-intro::before {
+    transform: none !important;
+  }
+
+  .heart-intro-halo {
+    transform: translate(-50%, -49%) scale(1) !important;
+  }
+
+  .heart-intro-copy {
+    transform: translate3d(-50%, 0, 0) !important;
+  }
+
   .mode-3d-toggle::before,
   .mode-3d-signal,
   .immersive-stage,
