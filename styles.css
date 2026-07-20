@@ -2,6 +2,7 @@
   color-scheme: light;
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
   --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ink: #2c2224;
   --muted: #77676b;
   --paper: #fff7f2;
@@ -2455,9 +2456,7 @@ h3 {
 }
 
 .heart-intro {
-  --heart-intro-reveal: 0;
-  --heart-intro-finish: 0;
-  --heart-copy-reveal: 0;
+  --heart-intro-duration: 5200ms;
   position: absolute;
   z-index: 180;
   inset: 0;
@@ -2465,12 +2464,16 @@ h3 {
   place-items: center;
   overflow: hidden;
   pointer-events: none;
-  contain: strict;
+  contain: layout paint style;
   background:
-    radial-gradient(ellipse at 50% 47%, rgba(142, 0, 36, 0.52), transparent min(46vw, 43vh)),
-    radial-gradient(ellipse at 50% 110%, rgba(226, 10, 59, 0.2), transparent 48%),
-    rgb(12 0 5);
-  opacity: calc(1 - var(--heart-intro-finish));
+    radial-gradient(ellipse at 50% 46%, rgba(170, 17, 62, 0.28), transparent min(48vw, 46vh)),
+    radial-gradient(ellipse at 50% 112%, rgba(224, 33, 82, 0.12), transparent 52%),
+    rgba(5, 3, 5, 0.88);
+  opacity: 0;
+}
+
+.heart-intro.is-playing {
+  animation: heartIntroBackdrop var(--heart-intro-duration) linear both;
 }
 
 .heart-intro::before,
@@ -2481,90 +2484,238 @@ h3 {
 }
 
 .heart-intro::before {
-  inset: -24%;
-  background:
-    conic-gradient(from 110deg at 50% 50%, transparent 0 36%, rgba(255, 75, 108, 0.12) 42%, transparent 48% 100%);
-  opacity: calc(0.1 + var(--heart-intro-reveal) * 0.52);
-  transform: rotate(calc(var(--heart-intro-reveal) * 26deg));
+  z-index: 0;
+  inset: -18%;
+  background: conic-gradient(
+    from 112deg at 50% 48%,
+    transparent 0 37%,
+    rgba(255, 89, 126, 0.1) 43%,
+    transparent 49% 100%
+  );
+  opacity: 0.6;
 }
 
 .heart-intro::after {
+  z-index: 5;
   inset: 0;
   background:
-    radial-gradient(circle at center, transparent 0 24%, rgba(0, 0, 0, 0.18) 54%, rgba(0, 0, 0, 0.72) 100%),
-    linear-gradient(180deg, rgba(0, 0, 0, 0.28), transparent 30%, transparent 70%, rgba(0, 0, 0, 0.42));
+    radial-gradient(circle at 50% 46%, transparent 0 26%, rgba(0, 0, 0, 0.12) 55%, rgba(0, 0, 0, 0.6) 100%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.2), transparent 30%, transparent 68%, rgba(0, 0, 0, 0.38));
 }
 
-.heart-intro-canvas {
+.heart-intro-heart {
   position: absolute;
   z-index: 2;
+  top: 50%;
+  left: 50%;
+  width: min(72vw, 620px);
+  aspect-ratio: 1;
+  perspective: 1100px;
+  transform: translate3d(-50%, -54%, 0);
+  transform-style: preserve-3d;
+}
+
+.heart-intro-aura {
+  position: absolute;
+  z-index: 0;
+  top: 50%;
+  left: 50%;
+  width: 70%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 51, 99, 0.5), rgba(157, 4, 45, 0.16) 42%, transparent 72%);
+  filter: blur(30px);
+  opacity: 0;
+  transform: translate(-50%, -48%) scale(0.68);
+}
+
+.heart-intro-shards,
+.heart-intro-shard,
+.heart-intro-shard img,
+.heart-intro-whole,
+.heart-intro-seams,
+.heart-intro-shine {
+  position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  filter: saturate(1.12) contrast(1.04);
 }
 
-.heart-intro-halo {
-  position: absolute;
-  z-index: 1;
-  top: 50%;
-  left: 50%;
-  width: min(68vw, 660px);
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 31, 79, 0.46), rgba(137, 0, 35, 0.18) 38%, transparent 70%);
-  filter: blur(32px);
-  opacity: calc(var(--heart-intro-reveal) * 0.72);
-  transform: translate(-50%, -49%) scale(calc(0.62 + var(--heart-intro-reveal) * 0.38));
+.heart-intro-shards {
+  z-index: 2;
+  transform-style: preserve-3d;
 }
 
-.heart-intro-gleam {
-  position: absolute;
-  z-index: 3;
-  top: -28%;
-  bottom: -28%;
-  left: 50%;
-  width: min(15vw, 140px);
-  background: linear-gradient(90deg, transparent, rgba(255, 218, 227, 0.12), rgba(255, 255, 255, 0.2), transparent);
-  filter: blur(30px);
-  mix-blend-mode: screen;
+.heart-intro-shard {
   opacity: 0;
-  transform: translateX(-320%) rotate(18deg);
+  transform-style: preserve-3d;
+  will-change: transform, opacity;
 }
 
-.heart-intro.is-healed .heart-intro-gleam {
-  animation: heartIntroGleam 850ms var(--ease-out-quint) both;
+.heart-intro-shard img,
+.heart-intro-whole {
+  display: block;
+  object-fit: contain;
+  filter: drop-shadow(0 22px 32px rgba(62, 0, 21, 0.3));
+  user-select: none;
+}
+
+.heart-intro-shard-one {
+  clip-path: polygon(0 0, 53% 0, 48% 20%, 55% 34%, 45% 48%, 0 41%);
+}
+
+.heart-intro-shard-two {
+  clip-path: polygon(53% 0, 100% 0, 100% 45%, 61% 51%, 55% 34%, 48% 20%);
+}
+
+.heart-intro-shard-three {
+  clip-path: polygon(0 41%, 45% 48%, 52% 62%, 45% 72%, 55% 100%, 0 100%);
+}
+
+.heart-intro-shard-four {
+  clip-path: polygon(45% 48%, 61% 51%, 100% 45%, 100% 100%, 55% 100%, 45% 72%, 52% 62%);
+}
+
+.heart-intro-whole {
+  z-index: 1;
+  opacity: 0;
+  will-change: transform, opacity, filter;
+}
+
+.heart-intro-seams {
+  z-index: 3;
+  overflow: visible;
+  fill: none;
+  pointer-events: none;
+  -webkit-mask: url("assets/heart-whole-v1.png") center / contain no-repeat;
+  mask: url("assets/heart-whole-v1.png") center / contain no-repeat;
+}
+
+.heart-intro-cracks path {
+  stroke: rgba(48, 0, 17, 0.9);
+  stroke-width: 1.35;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0;
+  filter: drop-shadow(0 0 1.5px rgba(255, 95, 131, 0.24));
+}
+
+.heart-intro-healing path {
+  stroke: rgba(255, 225, 232, 0.95);
+  stroke-width: 0.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1.2 3.2;
+  opacity: 0;
+  filter: drop-shadow(0 0 2.4px rgba(255, 104, 142, 0.92));
+}
+
+.heart-intro-shine {
+  z-index: 4;
+  background: linear-gradient(102deg, transparent 39%, rgba(255, 255, 255, 0.82) 49%, transparent 59%);
+  opacity: 0;
+  transform: translateX(-118%) skewX(-10deg);
+  -webkit-mask: url("assets/heart-whole-v1.png") center / contain no-repeat;
+  mask: url("assets/heart-whole-v1.png") center / contain no-repeat;
+  mix-blend-mode: screen;
+}
+
+.heart-intro-spark {
+  --spark-x: 0px;
+  --spark-y: -18px;
+  position: absolute;
+  z-index: 5;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #fff8fa;
+  box-shadow: 0 0 11px 3px rgba(255, 132, 162, 0.78);
+  opacity: 0;
+}
+
+.heart-intro-spark-one {
+  top: 33%;
+  left: 47%;
+  --spark-x: -18px;
+  --spark-y: -26px;
+}
+
+.heart-intro-spark-two {
+  top: 51%;
+  left: 61%;
+  --spark-x: 23px;
+  --spark-y: -12px;
+}
+
+.heart-intro-spark-three {
+  top: 68%;
+  left: 47%;
+  --spark-x: 10px;
+  --spark-y: 24px;
+}
+
+.heart-intro.is-playing .heart-intro-aura {
+  animation: heartIntroAura var(--heart-intro-duration) var(--ease-out-quint) both;
+}
+
+.heart-intro.is-playing .heart-intro-shard-one {
+  animation: heartShardOne var(--heart-intro-duration) var(--ease-out-expo) both;
+}
+
+.heart-intro.is-playing .heart-intro-shard-two {
+  animation: heartShardTwo var(--heart-intro-duration) var(--ease-out-expo) both;
+}
+
+.heart-intro.is-playing .heart-intro-shard-three {
+  animation: heartShardThree var(--heart-intro-duration) var(--ease-out-expo) both;
+}
+
+.heart-intro.is-playing .heart-intro-shard-four {
+  animation: heartShardFour var(--heart-intro-duration) var(--ease-out-expo) both;
+}
+
+.heart-intro.is-playing .heart-intro-whole {
+  animation: heartIntroWhole var(--heart-intro-duration) var(--ease-out-quint) both;
+}
+
+.heart-intro.is-playing .heart-intro-cracks path {
+  animation: heartIntroCrack var(--heart-intro-duration) linear both;
+}
+
+.heart-intro.is-playing .heart-intro-healing path {
+  animation: heartIntroHealing var(--heart-intro-duration) var(--ease-out-quint) both;
+}
+
+.heart-intro.is-playing .heart-intro-shine {
+  animation: heartIntroShine var(--heart-intro-duration) var(--ease-out-quint) both;
+}
+
+.heart-intro.is-playing .heart-intro-spark {
+  animation: heartIntroSpark var(--heart-intro-duration) var(--ease-out-quint) both;
 }
 
 .heart-intro-copy {
   position: absolute;
   z-index: 4;
-  bottom: clamp(34px, 7vh, 76px);
+  bottom: clamp(42px, 8vh, 84px);
   left: 50%;
-  display: grid;
-  width: min(520px, calc(100% - 48px));
-  gap: 5px;
+  width: min(620px, calc(100% - 48px));
   margin: 0;
-  color: rgba(255, 245, 246, 0.64);
-  text-align: center;
-  opacity: var(--heart-copy-reveal);
-  transform: translate3d(-50%, calc(14px - var(--heart-copy-reveal) * 14px), 0);
-}
-
-.heart-intro-copy span {
-  font-size: clamp(0.68rem, 1vw, 0.78rem);
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-}
-
-.heart-intro-copy strong {
-  color: #fff8f8;
+  color: #fff8fa;
   font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(1.25rem, 2.8vw, 2.35rem);
+  font-size: clamp(1.35rem, 3vw, 2.5rem);
   font-weight: 400;
   letter-spacing: -0.025em;
-  text-shadow: 0 0 26px rgba(255, 106, 137, 0.38);
+  line-height: 1.12;
+  text-align: center;
+  text-wrap: balance;
+  text-shadow: 0 0 28px rgba(255, 107, 143, 0.36);
+  opacity: 0;
+  transform: translate3d(-50%, 14px, 0);
+}
+
+.heart-intro.is-playing .heart-intro-copy {
+  animation: heartIntroCopy var(--heart-intro-duration) var(--ease-out-quint) both;
 }
 
 body.immersive-intro-active {
@@ -2577,6 +2728,11 @@ body.immersive-intro-active .immersive-counter,
 body.immersive-intro-active .immersive-scroll-hint,
 body.immersive-intro-active .immersive-exit {
   visibility: hidden;
+}
+
+body.immersive-intro-active .site-header {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .immersive-atmosphere,
@@ -3283,23 +3439,307 @@ body.immersive-active .mode-3d-toggle::after {
   }
 }
 
-@keyframes heartIntroGleam {
+@keyframes heartIntroBackdrop {
   0% {
     opacity: 0;
-    transform: translateX(-320%) rotate(18deg);
   }
 
-  24% {
-    opacity: 0.12;
-  }
-
-  68% {
-    opacity: 0.07;
+  7%,
+  86% {
+    opacity: 1;
   }
 
   100% {
     opacity: 0;
-    transform: translateX(250%) rotate(18deg);
+  }
+}
+
+@keyframes heartIntroAura {
+  0%,
+  9% {
+    opacity: 0;
+    transform: translate(-50%, -48%) scale(0.68);
+  }
+
+  24% {
+    opacity: 0.38;
+    transform: translate(-50%, -48%) scale(0.86);
+  }
+
+  58% {
+    opacity: 0.58;
+    transform: translate(-50%, -48%) scale(1);
+  }
+
+  76% {
+    opacity: 0.78;
+    transform: translate(-50%, -48%) scale(1.12);
+  }
+
+  91% {
+    opacity: 0.42;
+    transform: translate(-50%, -48%) scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -48%) scale(1.04);
+  }
+}
+
+@keyframes heartShardOne {
+  0%,
+  8% {
+    opacity: 0;
+    transform: translate3d(-68%, -52%, -240px) rotateX(18deg) rotateY(-22deg) rotateZ(-18deg) scale(0.72);
+  }
+
+  20% {
+    opacity: 1;
+    transform: translate3d(-9%, -7%, 52px) rotateX(7deg) rotateY(-9deg) rotateZ(-7deg) scale(0.95);
+  }
+
+  42% {
+    opacity: 1;
+    transform: translate3d(-9%, -7%, 52px) rotateX(7deg) rotateY(-9deg) rotateZ(-7deg) scale(0.95);
+  }
+
+  58%,
+  82% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) rotateX(0) rotateY(0) rotateZ(0) scale(1);
+  }
+
+  90%,
+  100% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes heartShardTwo {
+  0%,
+  8% {
+    opacity: 0;
+    transform: translate3d(70%, -54%, -220px) rotateX(-15deg) rotateY(24deg) rotateZ(16deg) scale(0.7);
+  }
+
+  20% {
+    opacity: 1;
+    transform: translate3d(9%, -7%, 46px) rotateX(-6deg) rotateY(10deg) rotateZ(6deg) scale(0.95);
+  }
+
+  42% {
+    opacity: 1;
+    transform: translate3d(9%, -7%, 46px) rotateX(-6deg) rotateY(10deg) rotateZ(6deg) scale(0.95);
+  }
+
+  58%,
+  82% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) rotateX(0) rotateY(0) rotateZ(0) scale(1);
+  }
+
+  90%,
+  100% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes heartShardThree {
+  0%,
+  8% {
+    opacity: 0;
+    transform: translate3d(-72%, 58%, -210px) rotateX(-18deg) rotateY(-20deg) rotateZ(15deg) scale(0.69);
+  }
+
+  20% {
+    opacity: 1;
+    transform: translate3d(-8%, 8%, 42px) rotateX(-7deg) rotateY(-8deg) rotateZ(6deg) scale(0.95);
+  }
+
+  42% {
+    opacity: 1;
+    transform: translate3d(-8%, 8%, 42px) rotateX(-7deg) rotateY(-8deg) rotateZ(6deg) scale(0.95);
+  }
+
+  58%,
+  82% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) rotateX(0) rotateY(0) rotateZ(0) scale(1);
+  }
+
+  90%,
+  100% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes heartShardFour {
+  0%,
+  8% {
+    opacity: 0;
+    transform: translate3d(72%, 62%, -250px) rotateX(20deg) rotateY(22deg) rotateZ(-16deg) scale(0.7);
+  }
+
+  20% {
+    opacity: 1;
+    transform: translate3d(8%, 8%, 48px) rotateX(7deg) rotateY(9deg) rotateZ(-6deg) scale(0.95);
+  }
+
+  42% {
+    opacity: 1;
+    transform: translate3d(8%, 8%, 48px) rotateX(7deg) rotateY(9deg) rotateZ(-6deg) scale(0.95);
+  }
+
+  58%,
+  82% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) rotateX(0) rotateY(0) rotateZ(0) scale(1);
+  }
+
+  90%,
+  100% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes heartIntroWhole {
+  0%,
+  62% {
+    opacity: 0;
+    filter: drop-shadow(0 22px 32px rgba(62, 0, 21, 0.3));
+    transform: scale(0.985);
+  }
+
+  68% {
+    opacity: 1;
+    transform: scale(0.99);
+  }
+
+  76% {
+    opacity: 1;
+    filter: drop-shadow(0 24px 38px rgba(85, 0, 28, 0.4)) drop-shadow(0 0 28px rgba(255, 67, 112, 0.24));
+    transform: scale(1.035);
+  }
+
+  84%,
+  100% {
+    opacity: 1;
+    filter: drop-shadow(0 22px 32px rgba(62, 0, 21, 0.3));
+    transform: scale(1);
+  }
+}
+
+@keyframes heartIntroCrack {
+  0%,
+  50% {
+    opacity: 0;
+    stroke-width: 1.45;
+  }
+
+  57%,
+  63% {
+    opacity: 0.96;
+    stroke-width: 1.35;
+  }
+
+  73%,
+  100% {
+    opacity: 0;
+    stroke-width: 0.2;
+  }
+}
+
+@keyframes heartIntroHealing {
+  0%,
+  56% {
+    opacity: 0;
+    stroke-dashoffset: 18;
+    stroke-width: 0.9;
+  }
+
+  62% {
+    opacity: 1;
+  }
+
+  73%,
+  100% {
+    opacity: 0;
+    stroke-dashoffset: -4;
+    stroke-width: 0.15;
+  }
+}
+
+@keyframes heartIntroShine {
+  0%,
+  69% {
+    opacity: 0;
+    transform: translateX(-118%) skewX(-10deg);
+  }
+
+  75% {
+    opacity: 0.82;
+  }
+
+  84%,
+  100% {
+    opacity: 0;
+    transform: translateX(118%) skewX(-10deg);
+  }
+}
+
+@keyframes heartIntroSpark {
+  0%,
+  61% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) scale(0.2);
+  }
+
+  68% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  78%,
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--spark-x), var(--spark-y), 0) scale(0.1);
+  }
+}
+
+@keyframes heartIntroCopy {
+  0%,
+  13% {
+    opacity: 0;
+    transform: translate3d(-50%, 14px, 0);
+  }
+
+  22%,
+  43% {
+    opacity: 1;
+    transform: translate3d(-50%, 0, 0);
+  }
+
+  55%,
+  100% {
+    opacity: 0;
+    transform: translate3d(-50%, -8px, 0);
+  }
+}
+
+@keyframes heartIntroReduced {
+  0%,
+  100% {
+    opacity: 0;
+  }
+
+  18%,
+  78% {
+    opacity: 1;
   }
 }
 
@@ -3697,21 +4137,37 @@ body.immersive-active .mode-3d-toggle::after {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .heart-intro,
-  .heart-intro-gleam {
-    animation: none !important;
+  .heart-intro.is-playing {
+    animation: heartIntroReduced 1200ms ease-out both !important;
   }
 
   .heart-intro::before {
     transform: none !important;
   }
 
-  .heart-intro-halo {
-    transform: translate(-50%, -49%) scale(1) !important;
+  .heart-intro-shards,
+  .heart-intro-seams,
+  .heart-intro-spark,
+  .heart-intro-shine {
+    display: none !important;
+  }
+
+  .heart-intro-aura {
+    opacity: 0.48;
+    transform: translate(-50%, -48%) scale(1) !important;
+    animation: none !important;
+  }
+
+  .heart-intro-whole {
+    opacity: 1;
+    transform: none !important;
+    animation: none !important;
   }
 
   .heart-intro-copy {
+    opacity: 1;
     transform: translate3d(-50%, 0, 0) !important;
+    animation: none !important;
   }
 
   .mode-3d-toggle::before,
@@ -3758,16 +4214,14 @@ body.immersive-active .mode-3d-toggle::after {
 }
 
 @media (max-width: 600px) {
-  .heart-intro-halo {
+  .heart-intro-heart {
     width: min(112vw, 520px);
+    transform: translate3d(-50%, -56%, 0);
   }
 
   .heart-intro-copy {
-    bottom: max(28px, calc(18px + env(safe-area-inset-bottom, 0px)));
+    bottom: max(34px, calc(24px + env(safe-area-inset-bottom, 0px)));
     width: calc(100% - 38px);
-  }
-
-  .heart-intro-copy span {
-    letter-spacing: 0.12em;
+    font-size: clamp(1.22rem, 6vw, 1.75rem);
   }
 }

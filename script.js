@@ -217,6 +217,7 @@ let pointerFrame = 0;
 let pointerX = 0;
 let pointerY = 0;
 let heartIntroFrame = 0;
+let heartIntroTimer = 0;
 let heartIntroRun = 0;
 let heartIntroResolve = null;
 let immersiveEntryToken = 0;
@@ -2038,15 +2039,14 @@ const renderHeartIntro = (progress) => {
 
 const finishHeartIntro = (run) => {
   if (run !== heartIntroRun) return;
+  window.clearTimeout(heartIntroTimer);
+  heartIntroTimer = 0;
   cancelAnimationFrame(heartIntroFrame);
   heartIntroFrame = 0;
-  heartIntro?.classList.remove("is-healed");
+  heartIntro?.classList.remove("is-playing");
   if (heartIntro) {
     heartIntro.hidden = true;
     heartIntro.setAttribute("aria-hidden", "true");
-    heartIntro.style.removeProperty("--heart-intro-reveal");
-    heartIntro.style.removeProperty("--heart-intro-finish");
-    heartIntro.style.removeProperty("--heart-copy-reveal");
   }
   document.body.classList.remove("immersive-intro-active");
   const resolve = heartIntroResolve;
@@ -2056,15 +2056,14 @@ const finishHeartIntro = (run) => {
 
 const stopHeartIntro = () => {
   heartIntroRun += 1;
+  window.clearTimeout(heartIntroTimer);
+  heartIntroTimer = 0;
   cancelAnimationFrame(heartIntroFrame);
   heartIntroFrame = 0;
-  heartIntro?.classList.remove("is-healed");
+  heartIntro?.classList.remove("is-playing");
   if (heartIntro) {
     heartIntro.hidden = true;
     heartIntro.setAttribute("aria-hidden", "true");
-    heartIntro.style.removeProperty("--heart-intro-reveal");
-    heartIntro.style.removeProperty("--heart-intro-finish");
-    heartIntro.style.removeProperty("--heart-copy-reveal");
   }
   document.body.classList.remove("immersive-intro-active");
   const resolve = heartIntroResolve;
@@ -2073,34 +2072,21 @@ const stopHeartIntro = () => {
 };
 
 const playHeartIntro = () => {
-  if (!heartIntro || !heartIntroCanvas || !heartIntroContext) return Promise.resolve();
+  if (!heartIntro) return Promise.resolve();
 
   stopHeartIntro();
   const run = ++heartIntroRun;
-  const duration = reduceMotion ? 980 : 5600;
+  const duration = reduceMotion ? 1200 : 5200;
   heartIntro.hidden = false;
   heartIntro.setAttribute("aria-hidden", "false");
-  heartIntro.classList.remove("is-healed");
+  heartIntro.classList.remove("is-playing");
+  void heartIntro.offsetWidth;
+  heartIntro.classList.add("is-playing");
   document.body.classList.add("immersive-intro-active");
 
   return new Promise((resolve) => {
     heartIntroResolve = resolve;
-    warmHeartHands().finally(() => {
-      if (run !== heartIntroRun || !isImmersiveActive()) return;
-      const start = performance.now();
-      const frame = (timestamp) => {
-        if (run !== heartIntroRun || !isImmersiveActive()) return;
-        const progress = clamp((timestamp - start) / duration, 0, 1);
-        renderHeartIntro(progress);
-        if (progress < 1) {
-          heartIntroFrame = requestAnimationFrame(frame);
-        } else {
-          finishHeartIntro(run);
-        }
-      };
-      renderHeartIntro(0);
-      heartIntroFrame = requestAnimationFrame(frame);
-    });
+    heartIntroTimer = window.setTimeout(() => finishHeartIntro(run), duration + 80);
   });
 };
 
@@ -2127,17 +2113,25 @@ const enterImmersiveMode = () => {
   resetImmersivePointer();
 
   const warmupPromise = warmImmersiveImages();
-  warmupPromise.finally(() => {
+  const stageReadyPromise = new Promise((resolve) => {
+    requestAnimationFrame(() => {
+      refreshImmersiveMetrics(true);
+      window.scrollTo(0, 0);
+      updateImmersiveProgress();
+      mode3dButton.focus({ preventScroll: true });
+      resolve();
+    });
+  });
+
+  const introPromise = stageReadyPromise.then(() => {
+    if (entryToken !== immersiveEntryToken || !isImmersiveActive()) return;
+    return playHeartIntro();
+  });
+
+  Promise.allSettled([warmupPromise, introPromise]).then(() => {
     if (entryToken !== immersiveEntryToken || !isImmersiveActive()) return;
     immersiveEntryPending = false;
     mode3dButton.removeAttribute("aria-busy");
-  });
-
-  requestAnimationFrame(() => {
-    refreshImmersiveMetrics(true);
-    window.scrollTo(0, 0);
-    updateImmersiveProgress();
-    mode3dButton.focus({ preventScroll: true });
   });
 };
 
