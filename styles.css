@@ -2074,6 +2074,10 @@ h3 {
   .tile,
   .tile img {
     min-height: 360px;
+    -webkit-backface-visibility: visible;
+    backface-visibility: visible;
+    -webkit-transform: none;
+    transform: none;
   }
 
   /* Gallery images must not depend on a scroll-reveal callback on mobile.
