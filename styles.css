@@ -2076,6 +2076,14 @@ h3 {
     min-height: 360px;
   }
 
+  /* Gallery images must not depend on a scroll-reveal callback on mobile.
+     Some mobile WebKit versions can skip that callback for grid children. */
+  .gallery .tile.reveal {
+    opacity: 1;
+    filter: none;
+    transform: none;
+  }
+
   .video-frame video {
     aspect-ratio: 9 / 14;
     max-height: 72vh;

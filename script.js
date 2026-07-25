@@ -156,7 +156,7 @@ reasons.forEach((reason) => {
 reasonsList.append(reasonsFragment);
 
 const revealItems = document.querySelectorAll(
-  ".section, .promise-card, .path-step, .tile, .video-frame, .ritual-photo, .ritual, .eyes-photo, .eyes-copy, .future-photo, .future-card"
+  ".section, .promise-card, .path-step, .video-frame, .ritual-photo, .ritual, .eyes-photo, .eyes-copy, .future-photo, .future-card"
 );
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)");
