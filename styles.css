@@ -1971,6 +1971,17 @@ h3 {
 }
 
 @media (max-width: 620px) {
+  /* Do not rely on IntersectionObserver-driven reveal effects on mobile.
+     Mobile Safari may postpone those paints until the visual viewport changes,
+     leaving otherwise interactive photo cards visibly empty. */
+  .reveal,
+  .reveal.is-visible {
+    opacity: 1;
+    filter: none;
+    transform: none;
+    transition: none;
+  }
+
   .site-header {
     top: 10px;
     width: calc(100% - 20px);
