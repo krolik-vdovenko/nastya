@@ -2044,7 +2044,11 @@ h3 {
   }
 
   .future-photo {
-    min-height: 570px;
+    /* A definite height is required for the absolutely positioned image.
+       Using only min-height can leave it unpainted in mobile Safari until a
+       visual-viewport resize occurs. */
+    height: clamp(480px, 145vw, 570px);
+    min-height: 0;
   }
 
   .future-card {
@@ -2091,7 +2095,15 @@ h3 {
 
   .tile,
   .tile img {
-    min-height: 360px;
+    min-height: 0;
+  }
+
+  .tile {
+    aspect-ratio: 4 / 5;
+  }
+
+  .tile img {
+    height: 100%;
   }
 
   /* Gallery images must not depend on a scroll-reveal callback on mobile.
